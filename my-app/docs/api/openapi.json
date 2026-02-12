@@ -1,0 +1,1474 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Scenario Studio API Document",
+    "description": "시나리오 스튜디오 API 문서입니다.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "servers": [],
+  "tags": [
+    {
+      "name": "[Scenario Studio] - Item"
+    },
+    {
+      "name": "[Scenario Studio] - Scenario"
+    },
+    {
+      "name": "[Scenario Studio] - Character"
+    },
+    {
+      "name": "[Scenario Studio] - ScenarioCategory"
+    },
+    {
+      "name": "User"
+    },
+    {
+      "name": "Authentication"
+    },
+    {
+      "name": "Terms"
+    },
+    {
+      "name": "[Scenario Studio] - Action"
+    },
+    {
+      "name": "[Scenario Studio] - Skill"
+    },
+    {
+      "name": "[Scenario Studio] - ScenarioType"
+    },
+    {
+      "name": "Device"
+    },
+    {
+      "name": "[Scenario Studio] - PatientClothing"
+    },
+    {
+      "name": "[Scenario Studio] - Pose"
+    },
+    {
+      "name": "[Scenario Studio] - MedicalTest"
+    },
+    {
+      "name": "[Scenario Studio] - ScenarioThumbnailImage"
+    },
+    {
+      "name": "[Scenario Studio] - File"
+    },
+    {
+      "name": "[Scenario Studio] - Enum"
+    },
+    {
+      "name": "[Scenario Studio] - PatientSymptom"
+    },
+    {
+      "name": "[Scenario Studio] - MedicalQuestion"
+    },
+    {
+      "name": "Organization"
+    },
+    {
+      "name": "Organization Post"
+    },
+    {
+      "name": "Country"
+    },
+    {
+      "name": "Curriculum"
+    },
+    {
+      "name": "License"
+    },
+    {
+      "name": "Class"
+    },
+    {
+      "name": "Product"
+    },
+    {
+      "name": "Scenario Play Record"
+    },
+    {
+      "name": "[All] -Health"
+    }
+  ],
+  "paths": {
+    "/item/list/option": {
+      "get": {
+        "operationId": "ItemController_getItemListBySkillIdAndType",
+        "summary": "스킬, 타입 별 아이템 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Item"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "MAP",
+                "CART",
+                "EQUIPMENT",
+                "CONSUMABLE",
+                "MEDICATION",
+                "EXPRESSION"
+              ]
+            }
+          },
+          {
+            "name": "skillId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/scenario/list": {
+      "get": {
+        "operationId": "ScenarioController_getScenarioListByUserId",
+        "summary": "본인이 생성한 시나리오 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Scenario"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/scenario/{scenarioId}/detail": {
+      "get": {
+        "operationId": "ScenarioController_getScenarioDetail",
+        "summary": "시나리오 상세 조회 API",
+        "tags": [
+          "[Scenario Studio] - Scenario"
+        ],
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/scenario": {
+      "post": {
+        "operationId": "ScenarioController_createScenario",
+        "summary": "시나리오 생성 API",
+        "tags": [
+          "[Scenario Studio] - Scenario"
+        ]
+      }
+    },
+    "/scenario/{classId}/class": {
+      "get": {
+        "operationId": "ScenarioController_getScenarioListByClassId",
+        "summary": "클래스별 시나리오 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Scenario"
+        ],
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/scenario/license": {
+      "get": {
+        "operationId": "ScenarioController_getScenarioListByLicense",
+        "summary": "라이센스별 시나리오 리스트 조회 API",
+        "description": "라이센스, 타입, 시나리오명, 저작기관명, 내용으로 검색 가능",
+        "tags": [
+          "[Scenario Studio] - Scenario"
+        ],
+        "parameters": [
+          {
+            "name": "organizationLicenseId",
+            "in": "query",
+            "required": true,
+            "description": "기관 라이센스 ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "scenarioCategoryId",
+            "in": "query",
+            "required": false,
+            "description": "시나리오 카테고리 ID (선택)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "searchKeyword",
+            "in": "query",
+            "required": false,
+            "description": "검색어 (시나리오명, 저작기관명, 내용 검색)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "description": "현재 페이지 번호 (1부터 시작)",
+            "schema": {
+              "type": "number",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": true,
+            "description": "한 페이지당 불러올 항목 수",
+            "schema": {
+              "type": "number",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetScenarioListByLicenseResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "라이센스를 찾을 수 없습니다."
+          }
+        }
+      }
+    },
+    "/character/list": {
+      "get": {
+        "operationId": "CharacterController_getCharacterList",
+        "summary": "캐릭터 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Character"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NPC",
+                "PATIENT"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/scenario-category/list": {
+      "get": {
+        "operationId": "ScenarioCategoryController_getScenarioCategoryListByType",
+        "summary": "시나리오 카테고리 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - ScenarioCategory"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "JOP",
+                "SUBJECT",
+                "DEPARTMENT"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/user/signup": {
+      "post": {
+        "operationId": "UserController_signup",
+        "summary": "회원가입 API",
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "회원가입 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "필수 약관에 모두 동의해야 합니다."
+          },
+          "404": {
+            "description": "존재하지 않는 약관이 포함되어 있습니다."
+          },
+          "409": {
+            "description": "이미 사용중인 loginId입니다."
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "operationId": "UserController_login",
+        "summary": "로그인 API",
+        "description": "사용자 인증 후 액세스 토큰 발급.",
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "유효하지 않는 계정정보입니다."
+          },
+          "409": {
+            "description": "비활성 상태의 계정입니다."
+          }
+        }
+      }
+    },
+    "/user/profile": {
+      "get": {
+        "operationId": "UserController_getUserProfile",
+        "summary": "유저 프로필 조회 API",
+        "tags": [
+          "User"
+        ]
+      },
+      "patch": {
+        "operationId": "UserController_updateUserProfile",
+        "summary": "유저 프로필 변경 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/regular-member/list": {
+      "get": {
+        "operationId": "UserController_getRegularMemberList",
+        "summary": "기관이 없는 정회원 리스트 조회 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/organization-member/list": {
+      "post": {
+        "operationId": "UserController_updateUserListOrganizationId",
+        "summary": "기관별 정회원 리스트 등록 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/check-email": {
+      "post": {
+        "operationId": "UserController_checkEmailDuplicate",
+        "summary": "이메일 중복 확인 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/check-login-id": {
+      "post": {
+        "operationId": "UserController_checkLoginIdDuplicate",
+        "summary": "로그인 ID 중복 확인 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/status/list": {
+      "post": {
+        "operationId": "UserController_updateUserStatus",
+        "summary": "유저 상태 전환 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/role/admin": {
+      "patch": {
+        "operationId": "UserController_updateUserRoleByAdmin",
+        "summary": "슈퍼관리자용 유저 권한 변경 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/role/organization": {
+      "patch": {
+        "operationId": "UserController_updateUserRoleByOrganizationAdmin",
+        "summary": "기관관리자용 유저 권한 변경 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/list": {
+      "delete": {
+        "operationId": "UserController_deleteUser",
+        "summary": "유저 삭제 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/all/count": {
+      "get": {
+        "operationId": "UserController_getAllUserCount",
+        "summary": "전체 유저 수 조회 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/option/list": {
+      "get": {
+        "operationId": "UserController_getUserListWithFilters",
+        "summary": "조건별 유저 리스트 조회 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/organization/{organizationId}/list": {
+      "get": {
+        "operationId": "UserController_getOrganizationUserList",
+        "summary": "기관별 유저 리스트 조회 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/bulk-upload-template": {
+      "get": {
+        "operationId": "UserController_downloadUserBulkUploadTemplate",
+        "summary": "유저 일괄 등록 템플릿 다운로드 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/bulk-create": {
+      "post": {
+        "operationId": "UserController_bulkCreateUsers",
+        "summary": "유저 일괄 생성 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/export-excel": {
+      "post": {
+        "operationId": "UserController_exportUserListExcel",
+        "summary": "조건별 유저 리스트 엑셀 추출 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/change-password": {
+      "post": {
+        "operationId": "UserController_changePassword",
+        "summary": "비밀번호 변경 (본인) API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/change-password-admin": {
+      "post": {
+        "operationId": "UserController_changePasswordAdmin",
+        "summary": "비밀번호 변경 (관리자) API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/user/my-account": {
+      "delete": {
+        "operationId": "UserController_deleteMyAccount",
+        "summary": "회원 탈퇴 API",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/auth/access-token": {
+      "post": {
+        "operationId": "AuthController_refreshToken",
+        "summary": "리프레시 토큰으로 액세스 토큰 재발급 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/send-verification-email": {
+      "post": {
+        "operationId": "AuthController_sendVerificationEmail",
+        "summary": "인증 메일 발송 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/verify-verification-code": {
+      "post": {
+        "operationId": "AuthController_verifyVerificationCode",
+        "summary": "이메일 인증 코드 검증 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/password-reset": {
+      "post": {
+        "operationId": "AuthController_requestPasswordReset",
+        "summary": "비밀번호 재설정 요청 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/send-deletion-code": {
+      "post": {
+        "operationId": "AuthController_sendDeletionCode",
+        "summary": "계정 삭제 인증 코드 메일 발송 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/verify-deletion-code": {
+      "post": {
+        "operationId": "AuthController_verifyDeletionCode",
+        "summary": "계정 삭제 인증 코드 검증 API",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/terms/list": {
+      "get": {
+        "operationId": "TermsController_getTermsList",
+        "summary": "이용약관 리스트 조회",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/action/list": {
+      "get": {
+        "operationId": "ActionController_getActionList",
+        "summary": "스킬별 액션 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Action"
+        ]
+      }
+    },
+    "/skill/category/list": {
+      "get": {
+        "operationId": "SkillController_getSkillCategoryList",
+        "summary": "스킬 카테고리 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Skill"
+        ]
+      }
+    },
+    "/skill/list": {
+      "get": {
+        "operationId": "SkillController_getSkillList",
+        "summary": "스킬 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Skill"
+        ]
+      }
+    },
+    "/scenario-type/list": {
+      "get": {
+        "operationId": "ScenarioTypeController_getScenarioTypeList",
+        "summary": "시나리오 타입 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - ScenarioType"
+        ]
+      }
+    },
+    "/device/type/list": {
+      "get": {
+        "operationId": "DeviceController_getDeviceTypeList",
+        "summary": "디바이스 타입 리스트 조회 API",
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/device/register": {
+      "post": {
+        "operationId": "DeviceController_registerDevice",
+        "summary": "기기 등록 API",
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/device/{organizationDeviceId}": {
+      "put": {
+        "operationId": "DeviceController_updateDevice",
+        "summary": "기기 정보 변경 API",
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/patient-clothing/list": {
+      "get": {
+        "operationId": "PatientClothingController_getPatientClothingListByType",
+        "summary": "환자 의상 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - PatientClothing"
+        ]
+      }
+    },
+    "/pose/list": {
+      "get": {
+        "operationId": "PoseController_getPoseList",
+        "summary": "환자 포즈 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Pose"
+        ]
+      }
+    },
+    "/medical-test/category/list": {
+      "get": {
+        "operationId": "MedicalTestController_getMedicalTestCategoryList",
+        "summary": "검사 카테고리 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - MedicalTest"
+        ]
+      }
+    },
+    "/medical-test/list": {
+      "get": {
+        "operationId": "MedicalTestController_getMedicalTestList",
+        "summary": "검사 카테고리 ID로 검사 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - MedicalTest"
+        ]
+      }
+    },
+    "/medical-test/item/list": {
+      "get": {
+        "operationId": "MedicalTestController_getMedicalTestItemList",
+        "summary": "검사 ID로 검사 항목 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - MedicalTest"
+        ]
+      }
+    },
+    "/scenario-thumbnail-image/list": {
+      "get": {
+        "operationId": "ScenarioThumbnailImageController_getScenarioThumbnailImageListByType",
+        "summary": "시나리오 카테고리 타입 별 썸네일 이미지 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - ScenarioThumbnailImage"
+        ]
+      }
+    },
+    "/file/presigned-url": {
+      "post": {
+        "operationId": "FileController_generatePresignedUrl",
+        "summary": "파일 업로드용 Pre-signed URL 생성 API",
+        "tags": [
+          "[Scenario Studio] - File"
+        ]
+      }
+    },
+    "/enum": {
+      "get": {
+        "operationId": "EnumController_getEnumList",
+        "summary": "Enum 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - Enum"
+        ]
+      }
+    },
+    "/patient-symptom/medical-department/list": {
+      "get": {
+        "operationId": "PatientSymptomController_getMedicalDepartmentList",
+        "summary": "진료과 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - PatientSymptom"
+        ]
+      }
+    },
+    "/patient-symptom/list": {
+      "get": {
+        "operationId": "PatientSymptomController_getPatientSymptomListByDepartmentId",
+        "summary": "진료과별 증상 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - PatientSymptom"
+        ]
+      }
+    },
+    "/patient-symptom/pattern/list": {
+      "get": {
+        "operationId": "PatientSymptomController_getPatientSymptomPatternListBySymptomId",
+        "summary": "증상별 증상양상 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - PatientSymptom"
+        ]
+      }
+    },
+    "/medical-question/list": {
+      "get": {
+        "operationId": "MedicalQuestionController_getMedicalQuestionList",
+        "summary": "문진 질문 리스트 조회 API",
+        "tags": [
+          "[Scenario Studio] - MedicalQuestion"
+        ]
+      }
+    },
+    "/organization/type/list": {
+      "get": {
+        "operationId": "OrganizationController_getOrganizationTypeList",
+        "summary": "기관 유형 리스트 조회 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization/count": {
+      "get": {
+        "operationId": "OrganizationController_getOrganizationCount",
+        "summary": "기관 수 조회 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization/list": {
+      "get": {
+        "operationId": "OrganizationController_getOrganizationList",
+        "summary": "기관 리스트 조회 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization/{organizationId}/detail": {
+      "get": {
+        "operationId": "OrganizationController_getOrganizationDetail",
+        "summary": "기관 상세 조회 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization": {
+      "post": {
+        "operationId": "OrganizationController_createOrganization",
+        "summary": "기관 생성 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization/{organizationId}": {
+      "put": {
+        "operationId": "OrganizationController_updateOrganization",
+        "summary": "기관 수정 API",
+        "tags": [
+          "Organization"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationController_deleteOrganization",
+        "summary": "기관 삭제 API",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/organization-post": {
+      "post": {
+        "operationId": "OrganizationPostController_createPost",
+        "summary": "기관 게시글 생성 API",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationPostRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "게시글 생성 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrganizationPostResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "기관에 소속된 사용자만 게시글을 작성할 수 있습니다."
+          }
+        },
+        "tags": [
+          "Organization Post"
+        ]
+      }
+    },
+    "/organization-post/list": {
+      "get": {
+        "operationId": "OrganizationPostController_getOrganizationPostList",
+        "summary": "기관별 게시글 리스트 조회 API",
+        "tags": [
+          "Organization Post"
+        ]
+      }
+    },
+    "/organization-post/{organizationPostId}": {
+      "put": {
+        "operationId": "OrganizationPostController_updatePost",
+        "summary": "기관 게시글 수정 API",
+        "tags": [
+          "Organization Post"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationPostController_deletePost",
+        "summary": "기관 게시글 삭제 API",
+        "tags": [
+          "Organization Post"
+        ]
+      }
+    },
+    "/country/list": {
+      "get": {
+        "operationId": "CountryController_getCountryList",
+        "summary": "국가 리스트 조회 API",
+        "tags": [
+          "Country"
+        ]
+      }
+    },
+    "/country/calling-code/list": {
+      "get": {
+        "operationId": "CountryController_getCountryCallingCodeList",
+        "summary": "국가 전화 코드 리스트 조회 API",
+        "tags": [
+          "Country"
+        ]
+      }
+    },
+    "/curriculum/list": {
+      "get": {
+        "operationId": "CurriculumController_getCurriculumList",
+        "summary": "커리큘럼 리스트 조회 API",
+        "tags": [
+          "Curriculum"
+        ]
+      }
+    },
+    "/curriculum/organization/list": {
+      "get": {
+        "operationId": "CurriculumController_getCurriculumListByOrganization",
+        "summary": "기관별 커리큘럼 리스트 조회 API",
+        "tags": [
+          "Curriculum"
+        ]
+      }
+    },
+    "/curriculum": {
+      "post": {
+        "operationId": "CurriculumController_createCurriculum",
+        "summary": "커리큘럼 생성 API",
+        "tags": [
+          "Curriculum"
+        ]
+      }
+    },
+    "/curriculum/{curriculumId}": {
+      "put": {
+        "operationId": "CurriculumController_updateCurriculum",
+        "summary": "커리큘럼 수정 API",
+        "tags": [
+          "Curriculum"
+        ]
+      }
+    },
+    "/license": {
+      "post": {
+        "operationId": "LicenseController_createLicense",
+        "summary": "기관 라이센스 생성 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/list": {
+      "get": {
+        "operationId": "LicenseController_getLicenseList",
+        "summary": "기관별 라이센스 리스트 조회 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/{organizationLicenseId}": {
+      "put": {
+        "operationId": "LicenseController_updateLicense",
+        "summary": "라이센스 수정 API",
+        "tags": [
+          "License"
+        ]
+      },
+      "delete": {
+        "operationId": "LicenseController_deleteLicense",
+        "summary": "기관 라이센스 삭제 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/{organizationLicenseId}/usage": {
+      "get": {
+        "operationId": "LicenseController_getLicenseUsage",
+        "summary": "라이센스별 사용 내역 조회 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/device": {
+      "post": {
+        "operationId": "LicenseController_registerDeviceToLicense",
+        "summary": "라이센스에 디바이스 등록 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/{organizationLicenseId}/device": {
+      "put": {
+        "operationId": "LicenseController_updateDeviceLicense",
+        "summary": "라이센스에 등록된 디바이스 목록 변경 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/license/{organizationId}/device": {
+      "get": {
+        "operationId": "LicenseController_getOrganizationDeviceList",
+        "summary": "기관별 기기 리스트 조회 API",
+        "tags": [
+          "License"
+        ]
+      }
+    },
+    "/class": {
+      "post": {
+        "operationId": "ClassController_createClass",
+        "summary": "클래스 생성 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/class/organization/list": {
+      "get": {
+        "operationId": "ClassController_getClassListByOrganization",
+        "summary": "기관별 클래스 리스트 조회 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/class/{classId}": {
+      "get": {
+        "operationId": "ClassController_getClassDetail",
+        "summary": "클래스 상세 조회 API",
+        "tags": [
+          "Class"
+        ]
+      },
+      "put": {
+        "operationId": "ClassController_updateClass",
+        "summary": "클래스 수정 API",
+        "tags": [
+          "Class"
+        ]
+      },
+      "delete": {
+        "operationId": "ClassController_deleteClass",
+        "summary": "클래스 삭제 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/class/{classId}/password": {
+      "put": {
+        "operationId": "ClassController_updateClassPassword",
+        "summary": "클래스 비밀번호 변경 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/class/{classId}/enroll": {
+      "post": {
+        "operationId": "ClassController_enrollClass",
+        "summary": "클래스 수강신청 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/class/{classId}/device/{organizationDeviceId}": {
+      "post": {
+        "operationId": "ClassController_registerDevice",
+        "summary": "클래스 디바이스 등록 API",
+        "tags": [
+          "Class"
+        ]
+      }
+    },
+    "/product": {
+      "post": {
+        "operationId": "ProductController_createProduct",
+        "summary": "프로덕트 생성 API",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
+    "/product/list": {
+      "get": {
+        "operationId": "ProductController_getProductList",
+        "summary": "프로덕트 리스트 조회 API",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
+    "/product/{productId}": {
+      "get": {
+        "operationId": "ProductController_getProductDetail",
+        "summary": "프로덕트 상세 조회 API",
+        "tags": [
+          "Product"
+        ]
+      },
+      "put": {
+        "operationId": "ProductController_updateProduct",
+        "summary": "프로덕트 수정 API",
+        "tags": [
+          "Product"
+        ]
+      },
+      "delete": {
+        "operationId": "ProductController_deleteProduct",
+        "summary": "프로덕트 삭제 API",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
+    "/scenario-play-record": {
+      "get": {
+        "operationId": "ScenarioPlayRecordController_getScenarioPlayRecords",
+        "summary": "시나리오 플레이 기록 조회 API",
+        "tags": [
+          "Scenario Play Record"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHello",
+        "summary": "헬스 체크 API",
+        "tags": [
+          "[All] -Health"
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "loginId": {
+            "type": "string",
+            "description": "사용자 로그인 ID",
+            "example": "user123"
+          },
+          "password": {
+            "type": "string",
+            "description": "사용자 비밀번호",
+            "example": "password123"
+          }
+        },
+        "required": [
+          "loginId",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "액세스 토큰"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "리프레시 토큰"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "SignupRequestDto": {
+        "type": "object",
+        "properties": {
+          "loginId": {
+            "type": "string",
+            "description": "로그인 ID",
+            "example": "user123"
+          },
+          "pw": {
+            "type": "string",
+            "description": "비밀번호",
+            "minLength": 8,
+            "example": "password123"
+          },
+          "realName": {
+            "type": "string",
+            "description": "실명",
+            "example": "박재인"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "전화번호",
+            "example": "01012345678"
+          },
+          "profileImageUrl": {
+            "type": "string",
+            "description": "프로필 이미지 Url (없을 시 기본 이미지 url)",
+            "example": "https://example.com/profile.jpg"
+          },
+          "affiliation": {
+            "type": "string",
+            "description": "소속",
+            "example": "○○병원 응급의학과"
+          },
+          "termsIdList": {
+            "type": "array",
+            "description": "동의한 약관 ID 리스트",
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              1,
+              2
+            ]
+          }
+        },
+        "required": [
+          "loginId",
+          "pw",
+          "realName",
+          "termsIdList"
+        ]
+      },
+      "SignupResponseDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "생성된 유저 ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "CreateOrganizationPostRequestDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "게시글 내용"
+          },
+          "fileUrl": {
+            "type": "string",
+            "description": "첨부파일 URL"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "CreateOrganizationPostResponseDto": {
+        "type": "object",
+        "properties": {
+          "organizationPostId": {
+            "type": "number",
+            "description": "생성된 게시글 ID"
+          }
+        },
+        "required": [
+          "organizationPostId"
+        ]
+      },
+      "OrganizationPostDto": {
+        "type": "object",
+        "properties": {
+          "organizationPostId": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fileUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "organizationPostId",
+          "content",
+          "createdAt",
+          "fileUrl"
+        ]
+      },
+      "GetOrganizationPostListResponseDto": {
+        "type": "object",
+        "properties": {
+          "postList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationPostDto"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "postList",
+          "totalCount"
+        ]
+      },
+      "UpdateOrganizationPostRequestDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdateOrganizationPostResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "DeleteOrganizationPostResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "GetScenarioListByLicenseResponseDto": {
+        "type": "object",
+        "properties": {
+          "scenarioList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScenarioItemDto"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "scenarioList",
+          "totalCount"
+        ]
+      },
+      "ScenarioItemDto": {
+        "type": "object",
+        "properties": {
+          "scenarioId": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "patientList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatientInfoDto"
+            }
+          },
+          "mapItemName": {
+            "type": "string"
+          },
+          "expectedPlayTimeSeconds": {
+            "type": "number"
+          },
+          "playCount": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "scenarioId",
+          "title",
+          "patientList",
+          "mapItemName",
+          "expectedPlayTimeSeconds",
+          "playCount",
+          "updatedAt"
+        ]
+      },
+      "PatientInfoDto": {
+        "type": "object",
+        "properties": {
+          "age": {
+            "type": "number"
+          },
+          "gender": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "age",
+          "gender"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,137 @@
+key,desc,type,delete_type,duplicate,details,detail_desc,비고
+string,design,string,string,int,string_array,-,-
+시트명,아이템관리 시트,,,,,,
+시트 설명,"색 들어간 셀의 도구는 시나리오스튜디오 도구목록에 들어가지 않음 (시스템 자동스폰)
+도구 관련, 키, 도구이름 정보.
+key - 도구 키. (변경불가)
+type - 도구 사용 방식. (변경불가)
+delete_type - 도구 삭제방식. (변경불가)
+    public enum MN_DeleteType
+    {
+        no_remove,  //제거 불가
+        equipment,  //탈착
+        trash,      //쓰레기통 넣어야되는경우
+    }
+duplicate - 도구 사용가능 횟수 - 0:계속사용. >0 사용횟수
+details - 같은 키를 공유하는 도구 별, 다른 VX셋팅이 필요할 경우 사용되는 변수. (ex. iv카테터 18g, 20g ...)
+",,,,,"type - 도구 사용 방식.
+    public enum MN_ToolType
+    {
+        equipment,      //장비형, 도구를 잡고 spot에 드랍합니다.
+        responsive,     //반응형, 도구를 잡고 spot에 일정시간 가져다 대고 있어야합니다.
+        checking_a,     //a버튼확인형, 도구를 잡고 컨트롤러의 a버튼을 눌러야합니다.
+        use_spot,       //사용형, 도구를 잡고 spot에 드랍합니다. 
+        use_grab,       //사용형, 도구를 잡았을 때 바로 사용됩니다. (ex. 손소독제)
+        value_int,      //값 입력형.
+        etc
+    }",
+key,desc,type,delete_type,duplicate,details,detail_desc,비고
+string,design,string,string,int,string_array,-,-
+to000101,라텍스 장갑,equipment,trash,0,,,
+to000102,멸균 라텍스 장갑,equipment,trash,0,,,
+to000103,멸균 폴리 장갑,equipment,trash,0,,,
+to000104,n95 마스크,equipment,trash,0,,,
+to000105,덴탈 마스크,equipment,trash,0,,,
+to000106,일회용 가운,equipment,trash,0,,,
+to000107,페이스 쉴드,equipment,trash,0,,,
+to000201,손소독제,use_grab,no_remove,0,,,
+to000202,환자 팔찌,use_grab,no_remove,0,,,환자 모델링에 고정되어 소환됨
+to000301,BP 커프,equipment,equipment,0,,,
+to000302,환자모니터 혈압측정,responsive,no_remove,0,,,환자모니터에 고정되어 소환됨
+to000303,고막 체온계,responsive,no_remove,0,,,
+to000304,SPO2 센서,equipment,equipment,0,,,
+to000305,ECG 케이블 (흰 - RA),equipment,equipment,0,,,
+to000306,ECG 케이블 (검 - LA),equipment,equipment,0,,,
+to000307,ECG 케이블 (빨 - LL),equipment,equipment,0,,,
+to000350,유아용 BP 커프,equipment,equipment,0,,,
+to000351,유아용 SPO2 센서,equipment,equipment,0,,,
+to000352,유아용 ECG 케이블 (흰 - RA),equipment,equipment,0,,,
+to000353,유아용 ECG 케이블 (검 - LA),equipment,equipment,0,,,
+to000354,유아용 ECG 케이블 (빨 - LL),equipment,equipment,0,,,
+to000355,유아용 토니켓,equipment,equipment,0,,,
+to000401,혈당 측정용 채혈침,equipment,no_remove,0,,,장착형이지만 사용시 사라진것처럼 보임.
+to000402,글루코미터 (혈당 측정기),responsive,no_remove,0,,,
+to000403,펜라이트,responsive,no_remove,0,,,
+to000404,청진기,responsive,no_remove,0,,,
+to000450,청진기 유아용,responsive,no_remove,0,,,
+to000501,토니켓,equipment,equipment,0,,,
+to000502,IV 카테터,use_spot,no_remove,0,{카테터 사이즈},"18g, 20g, 22g, 24g",
+to000503,필름 드레싱,use_spot,no_remove,0,,,
+to000504,조합된 필름 드레싱 카테터,equipment,trash,1,,,ac000503로 스폰. 도구목록 노출X
+to000505,빈 주사기,responsive,no_remove,0,,,10mL 모델링고정.
+to000506,조합된 채혈 주사기,responsive,trash,1,,,ac000504로 스폰. 도구목록 노출X
+to000507,검사 용기 (Tube),기능 없음,no_remove,0,{검사용기 이름},"edta, sst, citrate, plain, aerobic, anaerobic, blood_culture, vbga",정의된 디테일만 작동
+to000508,소변 검체통,기능 없음,no_remove,1,,,
+to000601,빈 인슐린 주사기,responsive,no_remove,0,,,1mL 모델링 고정. 디테일값 네임태그
+to000602,덩이주사 약물 (앰플),기능 없음,no_remove,0,{약물이름}.{용량},hydrocortisone.100mg,
+to000603,인슐린 약물 (바이알),기능 없음,no_remove,0,{약물이름}.{용량},,10mL 모델링고정. 디테일 없을 시 기본 태그 'Regular Insulin 5IU'
+to000606,조합된 덩이주사 약물 주사기,use_spot,trash,1,,,
+to000607,조합된 인슐린 약물 주사기,use_spot,trash,1,,,
+to000609,피내주사 약물 주사기,use_spot,equipment,0,{약물이름},,
+to000610,경구 약물 (원형),use_spot,no_remove,0,{약물이름}.{용량},,
+to000611,인슐린펜,use_spot,no_remove,0,,,
+to000612,수액,기능 없음,no_remove,0,{수액이름}.{용량},"50dw.50ml, 50dw.100ml, 10dw.100ml",
+to000613,조합된 Dosiflow 수액세트,equipment,trash,0,,,
+to000614,조합된  Dosiflow 수액세트 주입구,equipment,no_remove,0,,,ac000613
+to000615,조합된 인퓨전 수액세트,equipment,trash,0,,,
+to000616,조합된 인퓨전 수액세트 주입구,equipment,no_remove,0,,,ac000619
+to000617,수액세트 (기본),use_spot,no_remove,0,,,
+to000618,수액세트 (Dosiflow),use_spot,no_remove,0,,,
+to000619,Dosiflow,value_int,no_remove,0,,,to000611에 붙어있음
+to000620,수액 세트 (인퓨전펌프용),use_spot,no_remove,0,,,
+to000621,오렌지 주스,use_spot,no_remove,0,,,
+to000622,인퓨전 펌프,equipment,no_remove,0,,,
+to000623,덩이주사 약물(바이알),기능 없음,no_remove,0,"{약물이름},{용량}",,
+to000624,경구 약물 (타원형),use_spot,no_remove,0,"{약물이름},{용량}",,
+to000630,수혈팩 (Packed RBC),기능 없음,no_remove,0,"{수혈팩 이름},{용량}",,나머지 변수들은 인게임 환자데이터 참조해서 클라에서 생성
+to000631,조합된 수혈팩 세트,equipment,no_remove,0,,,
+to000632,수혈 세트 (RBC),use_spot,no_remove,0,,,
+to000634,조합된 수혈팩 세트 주입구,equipment,no_remove,0,,,
+to000635,조합된 일반 수액세트,equipment,trash,0,,,ac000624
+to000636,조합된 일반 수액세트 주입구,equipment,no_remove,0,,,
+to000801,제세동기,etc,no_remove,0,,,모델링 내 버튼클릭 액션
+to000802,제세동기 패드 (manual) L,responsive,no_remove,0,,,
+to000803,제세동기 패드 (manual) R,responsive,no_remove,0,,,
+to000804,제세동기 패드 (auto) L,equipment,no_remove,0,,,
+to000805,제세동기 패드 (auto) R,equipment,no_remove,0,,,
+to000810,fetal monitor,기능 없음,no_remove,0,"{그래프이미지1},{그래프이미지2}",,
+to000901,스마트폰,use_grab,no_remove,0,,,콜메뉴가 EMR UI로 들어가면서 사용하지 않게됨.
+to001001,관장용 주사기 (50cc),use_spot,no_remove,0,{약물 이름},"duphalc,kalimate,glycerin",
+to001002,관장 튜브,use_grab,no_remove,0,,,
+to001003,조합된 관장튜브 주사기,use_spot,trash,1,,,
+to001004,단순 도뇨 카테터,use_spot,no_remove,0,,,
+to001005,유치 도뇨 카테터,use_spot,trash,0,,,없음
+to001006,소변 수집기 유아용,equipment,no_remove,0,,,
+to001007,소변 채워진 수집기 유아용,equipment,equipment,0,,,ac001106
+to001008,소변백,equipment,equipment,0,,,
+to001009,반사망치,responsive,no_remove,0,,,
+to001101,산소 유량계,value_int,no_remove,0,,,벽에 걸려있어야함
+to001102,비강 캐뉼라,equipment,equipment,0,,,
+to001103,단순 마스크,equipment,equipment,0,,,
+to001104,비재호흡 마스크,equipment,equipment,0,,,
+to001105,구인두 기도기,equipment,equipment,0,{색깔},"red, green",
+to001106,흡인 카테터,responsive,no_remove,0,,,
+to001150,유아용 비강 캐뉼라,equipment,no_remove,0,,,
+to001151,유아용 단순마스크,equipment,no_remove,0,,,
+to001152,유아용 마우스 피스 + 네뷸라이저,equipment,no_remove,0,{네임태그},,
+to001153,장착된 유아용 마우스 피스,equipment,no_remove,0,,,
+to001401,어깨 (두드리기),responsive,no_remove,0,,,맨손술기 (양손 스팟 진입)
+to001402,어깨 (꼬집기)_r,use_grab,no_remove,0,,,맨손술기
+to001403,어깨 (꼬집기)_l,use_grab,no_remove,0,,,맨손술기
+to001404,복부타진 맨손술기 1,responsive,no_remove,0,,,맨손술기
+to001405,복부타진 맨손술기 2,responsive,no_remove,0,,,맨손술기
+to001406,복부타진 맨손술기 3,responsive,no_remove,0,,,맨손술기
+to001407,복부타진 맨손술기 4,responsive,no_remove,0,,,맨손술기
+to001408,부종 확인 왼쪽,use_grab,no_remove,0,,,맨손술기
+to001409,부종 확인 오른쪽,use_grab,no_remove,0,,,맨손술기
+to001501,사이드 레일_r,use_grab,no_remove,0,,,
+to001502,사이드 레일_l,use_grab,no_remove,0,,,
+to009901,환자 일반 상의,equipment,equipment,0,,,의복
+to009902,환자 일반 하의,equipment,equipment,0,,,의복
+to009903,환자 아동복 상의,equipment,equipment,0,,,의복
+to009904,환자 아동복 하의,equipment,equipment,0,,,의복
+to009905,성인 환자복 상의,equipment,equipment,0,,,의복
+to009906,성인 환자복 하의,equipment,equipment,0,,,의복
+to009907,소독솜,use_spot,no_remove,0,,,
+to009908,유아용 기저귀,use_grab,no_remove,0,,,의복
+to009909,유아용 상의,equipment,no_remove,0,,,의복

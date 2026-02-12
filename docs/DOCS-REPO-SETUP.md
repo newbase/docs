@@ -83,9 +83,47 @@ git checkout ux-design
 
 ---
 
-## 7. 나중에 문서만 수정 후 다시 올리기
+## 7. "There isn't a GitHub Pages site here" 가 나올 때
 
-문서를 수정한 뒤 새 docs 저장소에 반영하려면:
+이 메시지는 **저장소에 내용이 없거나**, **Pages가 아직 설정/배포되지 않았을 때** 나옵니다.
+
+### 7-1. 내용이 newbase/docs에 올라갔는지 확인
+
+1. **https://github.com/newbase/docs** 접속
+2. **main** 브랜치에 **docs/** 폴더와 **screenshots/** 폴더가 있는지 확인
+3. 비어 있거나 **main**에 커밋이 없으면 → 아래처럼 **로컬에서 푸시** 필요
+
+```bash
+cd /Users/sunny/projects/web-service
+git checkout docs-publish
+git push docs-repo docs-publish:main
+```
+
+- **HTTPS**로 푸시 시 로그인/토큰 요구되면, **SSH**로 바꿔서 시도:
+
+```bash
+git remote set-url docs-repo git@github.com:newbase/docs.git
+git push docs-repo docs-publish:main
+```
+
+### 7-2. GitHub Pages 설정 확인
+
+1. **https://github.com/newbase/docs** → **Settings** → **Pages**
+2. **Source**: `Deploy from a branch`
+3. **Branch**: **main**, **Folder**: **/ (root)**
+4. **Save** 후 1~2분 기다리기
+5. 상단에 **Your site is live at https://newbase.github.io/docs/** 가 뜨면 성공
+
+### 7-3. 접속 주소
+
+- **사이트 루트**: https://newbase.github.io/docs/
+- **문서 진입 페이지**: https://newbase.github.io/docs/docs/backend-workflow-index.html
+
+---
+
+## 8. 나중에 문서만 수정 후 다시 올리기
+
+문서를 수정한 뒤 새 docs 저장소에 반영하려면 (이미 8로 되어 있으면 그대로 두세요):
 
 ```bash
 cd /Users/sunny/projects/web-service

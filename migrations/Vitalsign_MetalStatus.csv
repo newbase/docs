@@ -1,0 +1,21 @@
+환자분류,key,성인,소아,노인,임산부
+연령대,age,13~64,1~12,65~100,
+수축기 혈압(최대),sbp_min,90,95,110,90
+수축기 혈압(최소),sbp_max,120,110,140,120
+이완기 혈압(최대),dbp_min,60,55,60,60
+이완기 혈압(최소),dbp_max,80,75,90,80
+심박수(최대),hr_min,60,70,60,70
+심박수(최소),hr_max,100,120,100,110
+호흡수(최대),rr_min,12,20,12,12
+호흡수(최소),rr_max,20,30,20,20
+체온(최대),bt_min,36.5,36.5,36.2,36.5
+체온(최소),bt_max,37.5,37.5,37.3,37.5
+산소포화도(최대),spo2_min,95,95,94,95
+산소포화도(최소),spo2_max,100,100,100,100
+혈당(최대),bst_min,70,70,80,70
+혈당(최소),bst_max,140,140,160,140
+심전도,ecg,sinus rhythm,sinus rhythm,sinus rhythm,sinus rhythm
+GCS,gcs_score,E4V5M6,E4V5M6,E4V5M6,E4V5M6
+GCS,gcs_status,Alert,Alert,Alert,Alert
+AVPU,avpu,Alert,Alert,Alert,Alert
+지남력,orientation,"person, place, time","person, place, time","person, place, time","person, place, time"
