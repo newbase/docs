@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>백엔드 참고: Master 사용자 워크플로우 & 데이터 흐름</title>
+  <meta name="description" content="Master 페이지별 스크린샷, 화면 요약, API 명세, 비즈니스 규칙, 통계, 연관 API 플로우. 백엔드 개발자용." />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root { --sidebar-width: 220px; --header-height: 56px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; line-height: 1.6; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-width); flex-shrink: 0; background: #f9fafb; border-right: 1px solid #e5e7eb; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar-title { padding: 16px; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sidebar nav { padding: 0 0 24px 0; }
+    .sidebar nav a { display: block; padding: 10px 16px; font-size: 0.9rem; color: #374151; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar nav a:hover { background: #f3f4f6; color: #111; }
+    .sidebar nav a.active { background: #eff6ff; color: #1d4ed8; border-left-color: #2563eb; font-weight: 500; }
+    .main { flex: 1; padding: 0 32px 48px; max-width: 920px; }
+    .page-header { display: flex; align-items: center; gap: 12px; height: var(--header-height); border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+    .page-header .role { font-size: 0.8rem; color: #6b7280; font-weight: 500; }
+    .page-header .sep { color: #d1d5db; }
+    .page-header .page-name { font-size: 1.25rem; font-weight: 600; color: #111; }
+    section.page-section { margin-bottom: 48px; }
+    section.page-section h2 { font-size: 1rem; font-weight: 600; color: #374151; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+    section.page-section h3 { font-size: 0.95rem; color: #4b5563; margin: 16px 0 8px 0; }
+    section.page-section p { margin: 8px 0; font-size: 0.9rem; }
+    section.page-section ul { margin: 8px 0; padding-left: 24px; }
+    section.page-section li { margin: 4px 0; }
+    .screenshot { margin: 12px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; max-width: 100%; }
+    .screenshot img { display: block; max-width: 100%; height: auto; }
+    .screenshot figcaption { padding: 8px 12px; font-size: 0.8rem; color: #6b7280; background: #f9fafb; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.875rem; margin: 12px 0; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; }
+    th { background: #f9fafb; font-weight: 600; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+    .flow-list { list-style: none; padding: 0; margin: 12px 0; }
+    .flow-list li { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; display: flex; align-items: baseline; gap: 8px; }
+    .flow-list li:last-child { border-bottom: none; }
+    .flow-num { flex-shrink: 0; width: 24px; height: 24px; background: #e0e7ff; color: #3730a3; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+    .main .page-article { display: none; }
+    .main .page-article:first-child { display: block; }
+    .role-nav { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 0.8rem; }
+    .role-nav a { color: #2563eb; text-decoration: none; margin-right: 8px; }
+    .role-nav a:hover { text-decoration: underline; }
+    .role-nav span.current { color: #374151; font-weight: 600; margin-right: 8px; }
+    .flow-caption { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 24px 0 8px 0; }
+    .flow-caption:first-of-type { margin-top: 0; }
+    .flow-note { font-size: 0.8rem; color: #6b7280; margin: 4px 0 12px 0; }
+    .mermaid { margin: 16px 0; }
+    .mermaid svg { max-width: 100%; }
+    #workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-content: start; }
+    #workflow > .page-header { grid-column: 1 / -1; }
+    #workflow .page-section { min-width: 0; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="role-nav">
+        <a href="backend-workflow-student.html">Student</a>
+        <span class="current">Master</span>
+        <a href="backend-workflow-admin.html">Admin</a>
+      </div>
+      <div class="sidebar-title">Master · 페이지</div>
+      <nav>
+        <a href="#workflow" class="nav-link">워크플로우</a>
+        <a href="#dashboard" class="nav-link">대시보드</a>
+        <a href="#my-classes-list" class="nav-link">마이클래스 목록</a>
+        <a href="#my-class-detail" class="nav-link">마이클래스 상세</a>
+        <a href="#class-management" class="nav-link">클래스 관리</a>
+        <a href="#open-class-create" class="nav-link">오픈클래스 생성</a>
+        <a href="#class-create" class="nav-link">기관클래스 생성</a>
+        <a href="#product-management" class="nav-link">프로덕트 관리</a>
+        <a href="#product-create" class="nav-link">프로덕트 생성</a>
+        <a href="#product-detail" class="nav-link">프로덕트 상세</a>
+        <a href="#scenarios" class="nav-link">시나리오</a>
+        <a href="#scenario-detail" class="nav-link">시나리오 상세</a>
+        <a href="#organization" class="nav-link">관리자 설정(기관)</a>
+        <a href="#order-management" class="nav-link">주문관리</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <article id="dashboard" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">대시보드</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/01-dashboard.png" alt="대시보드" /><figcaption>대시보드</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터가 소속 기관 기준으로 보는 홈. 기간·필터로 최근 활동·클래스·라이선스 요약을 보고, 클래스/기관 등으로 이동한다.</p>
+          <table><tr><th>경로</th><td><code>/master/dashboard</code></td></tr><tr><th>사용자 행동</th><td>기간 필터, 필터/검색, 카드·링크 클릭 → 클래스·기관 등 상세</td></tr><tr><th>표시 데이터</th><td>최근 활동, 활성 라이선스·클래스 요약 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p>대시보드용: <code>GET /dashboard/master</code> 또는 기관·클래스·라이선스 요약 API. 쿼리: startDate, endDate. 현재 사용자(마스터)의 organizationId 기준 데이터.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>마스터는 본인 소속 기관 데이터만 조회. 인증 시 organizationId 확정.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>기간 내 활동 건수, 활성 클래스/라이선스 수 등 (구현에 따라).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 대시보드 진입 → 대시보드/요약 API</li><li><span class="flow-num">2</span> 링크 클릭 → 클래스 관리·기관 설정 등 해당 목록/상세 API</li></ul></section>
+      </article>
+
+      <article id="my-classes-list" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">마이클래스 목록</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/02-my-classes.png" alt="마이클래스 목록" /><figcaption>마이클래스 목록</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터가 본인 수강 클래스 목록을 보는 화면. Student와 동일 구조, basePath만 /master. 상태 필터·카드 클릭 → 마이클래스 상세, 초대코드 등록.</p>
+          <table><tr><th>경로</th><td><code>/master/my-classes</code></td></tr><tr><th>사용자 행동</th><td>상태 필터, 카드 클릭 → 상세, 초대코드 등록</td></tr><tr><th>표시 데이터</th><td>클래스 카드: 제목, 썸네일, 수강기간, 표시 상태, 세션 수 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p>Student와 동일: <code>GET /class/my-list</code> (또는 /enrollment/my-classes). 인증 사용자 = Master. page, pageSize, status(all|eligible|participating|completed|ended).</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Student 마이클래스 목록과 동일. 수강 등록된 클래스만, 표시 상태(참여가능/참여중/이수완료/종료) 규칙 적용.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>참여중인 클래스 수(수강기간 내·participating). 목록 API 응답에 summary.activeCount 포함 가능.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 내 수강 클래스 목록 API</li><li><span class="flow-num">2</span> 초대코드 등록 → 초대 수락 API → 마이클래스 상세</li><li><span class="flow-num">3</span> 카드 클릭 → <code>GET /class/{classId}</code> → 마이클래스 상세</li></ul></section>
+      </article>
+
+      <article id="my-class-detail" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">마이클래스 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/32-마이클래스-상세.png" alt="마이클래스 상세" /><figcaption>마이클래스 상세</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>수강 중인 클래스 하나의 상세. 세션 시작·세션 참여·결과보기·이수증 다운로드. Student 마이클래스 상세와 동일 플로우.</p>
+          <table><tr><th>경로</th><td><code>/master/my-classes/:id</code></td></tr><tr><th>표시 데이터</th><td>수강기간, 이수목표, 이수율, 커리큘럼 목록</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /class/{classId}</code>, 진행 현황(예: GET /enrollment/{classId}/progress), 이수증 API(이수 완료 시).</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Student 마이클래스 상세와 동일. 세션 시작 시 participating 갱신, 이수율·이수 완료 조건.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>이수율(0~100). 이수 완료 시 이수증 다운로드.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 클래스 상세 + 진행 현황 API</li><li><span class="flow-num">2</span> 세션 참여 → 시뮬레이션/결과 API</li></ul></section>
+      </article>
+
+      <article id="class-management" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">클래스 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/03-class-management.png" alt="클래스 관리" /><figcaption>클래스 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터 소속 기관의 오픈클래스·기관클래스 목록. 검색·유형(오픈/기관)·활성·기간 필터. 행 클릭 → 상세, 오픈클래스/기관클래스 생성 버튼, 수정/삭제.</p>
+          <table><tr><th>경로</th><td><code>/master/class-management</code></td></tr><tr><th>사용자 행동</th><td>검색, 유형/활성/기간 필터, 행 제목 클릭 → 오픈/기관 상세, 수정·삭제 드롭다운</td></tr><tr><th>테이블</th><td>유형, 클래스명, 기관명, 시나리오 수, 참가자, 이수율, 소요시간, 생성자, 생성일, 수강기간, 상태, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /class/organization/list</code> — organizationId(마스터 소속), page, pageSize, searchTerm, isActive, startDate, endDate. 유형 필터는 isForSale/price 등으로 클라이언트 또는 서버에서 구분.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>마스터는 본인 organizationId의 클래스만 조회·수정·삭제 가능.</li><li>오픈클래스: 판매용(isForSale/가격 있음). 기관클래스: 기관 전용.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>목록 상단 카드: 전체/오픈/기관 클래스 수 (응답 totalCount 또는 별도 집계).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 클래스 목록 API(기관 기준)</li><li><span class="flow-num">2</span> 오픈클래스 생성 → POST 오픈클래스 API</li><li><span class="flow-num">3</span> 기관클래스 생성 → POST /class API</li><li><span class="flow-num">4</span> 수정/삭제 → PUT/DELETE /class/{classId}</li></ul></section>
+      </article>
+
+      <article id="open-class-create" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">오픈클래스 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/06-open-class-create.png" alt="오픈클래스 생성" /><figcaption>오픈클래스 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>판매용 오픈클래스 생성. 프로덕트 연결, 수강기간·참가비·할인·참여방법(공개/비공개) 등 입력 후 저장.</p>
+          <table><tr><th>경로</th><td><code>/master/open-class/create</code></td></tr><tr><th>표시/입력</th><td>프로덕트 선택, 수강기간, 가격, 할인, 공개/비공개, 커리큘럼 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p>오픈클래스(프로덕트 기반) 생성: <code>POST /open-class</code> 또는 프로덕트·클래스 연동 API. 요청: productId, startDate, endDate, price, discountPrice, isPrivate, 참가 제한 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li><strong>권한</strong>: 오픈클래스 개설은 Admin과 제휴기관 Master만 가능. (일반 Master는 불가)</li><li>공개: 참여방법·수강기간·참가비·할인 검증. 비공개: 라이선스 설정 검증.</li><li>소속 기관 기준 생성(제휴기관인 경우).</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 프로덕트 목록 API(선택용)</li><li><span class="flow-num">2</span> 저장 → POST 오픈클래스 → 클래스 관리 목록에 반영</li></ul></section>
+      </article>
+
+      <article id="class-create" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">기관클래스 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/07-class-create.png" alt="기관클래스 생성" /><figcaption>기관클래스 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>기관 전용 클래스 생성. 제목, 비공개 여부·비밀번호, 이수 조건(최소 시나리오 수·합격 점수), 커리큘럼(시나리오/동영상), 수강기간 등 입력 후 저장.</p>
+          <table><tr><th>경로</th><td><code>/master/class/create</code></td></tr><tr><th>입력</th><td>제목, isPrivate, pw, requireAllScenarioCompletion, minScenarioCompletionCount, minPassingScore, scenarioList, startDate, endDate 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /class</code> — CreateClassRequestDto: organizationId, organizationLicenseIdList, title, isPrivate, pw, requireAllScenarioCompletion, minScenarioCompletionCount, minPassingScore, scenarioList, startDate, endDate, thumbnailUrl, description. 응답: classId.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>organizationId = 마스터 소속 기관. 라이선스 목록은 기관 라이선스 API로 조회.</li><li>isPrivate=true 시 pw 필수.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 기관 라이선스 목록(선택 시)</li><li><span class="flow-num">2</span> 시나리오 목록(커리큘럼 선택)</li><li><span class="flow-num">3</span> POST /class → 클래스 관리 목록에 반영</li></ul></section>
+      </article>
+
+      <article id="product-management" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">프로덕트 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/04-product-management.png" alt="프로덕트 관리" /><figcaption>프로덕트 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터 소속 기관의 프로덕트 목록. 검색·활성 필터, 정렬(주문건수·금액·판매합계 등). 프로덕트명 클릭 → 상세, 수정/삭제, 생성 버튼.</p>
+          <table><tr><th>경로</th><td><code>/master/product-management</code></td></tr><tr><th>테이블</th><td>프로덕트명, 기관주문건수, 기관주문금액, 온라인 주문건수, 온라인 결제금액, 판매합계, 등록일, 활성여부, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /product/list</code> — organizationId(마스터 소속), page, pageSize, searchTerm, isActive, sortBy, sortOrder. 응답: 목록 + orderCount, orgOrderAmount, openClassCount, cumulativePayment, totalSales 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>마스터는 본인 기관 프로덕트만 조회·수정·삭제.</li><li>판매합계 = 기관주문금액 + 온라인 결제금액 등 (도메인 정의).</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>기관주문건수, 온라인 결제금액, 판매합계 등 컬럼 값. 정렬 가능 필드로 활용.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 프로덕트 목록 API</li><li><span class="flow-num">2</span> 생성 → 프로덕트 생성 페이지</li><li><span class="flow-num">3</span> 행 클릭 → GET /product/{id} → 상세/편집</li></ul></section>
+      </article>
+
+      <article id="product-create" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">프로덕트 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/05-product-create.png" alt="프로덕트 생성" /><figcaption>프로덕트 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>프로덕트(상품) 생성. 제목, 설명, 가격, 커리큘럼(시나리오 연결) 등 입력 후 저장.</p>
+          <table><tr><th>경로</th><td><code>/master/product/create</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /product</code> — title, description, price, discountPrice, scenarioIdList(또는 curriculum), organizationId 등. 응답: productId.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>소속 기관 기준 생성. 필수 필드·가격 검증.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 시나리오 목록(커리큘럼 선택)</li><li><span class="flow-num">2</span> POST /product → 프로덕트 관리 목록에 반영</li></ul></section>
+      </article>
+
+      <article id="product-detail" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">프로덕트 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/12-product-detail.png" alt="프로덕트 상세" /><figcaption>프로덕트 상세</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>프로덕트 하나의 상세 조회·편집. 수정/삭제 시 해당 API 호출.</p>
+          <table><tr><th>경로</th><td><code>/master/product/edit/:id</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /product/{id}</code>, <code>PUT /product/{id}</code>, <code>DELETE /product/{id}</code>. 본인 기관 프로덕트만.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>권한: 마스터 소속 기관 프로덕트만.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET /product/{id} → 수정 시 PUT → 프로덕트 관리로 복귀</li></ul></section>
+      </article>
+
+      <article id="scenarios" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">시나리오</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/08-scenarios.png" alt="시나리오" /><figcaption>시나리오</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터가 사용할 수 있는 시나리오 목록. 제목/링크 클릭 → 시나리오 상세. 검색·필터(플랫폼·상태 등) 있을 수 있음.</p>
+          <table><tr><th>경로</th><td><code>/master/scenarios</code></td></tr><tr><th>표시</th><td>시나리오명, 코드, 플랫폼, 상태, 수정일 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /scenario/list</code> — 라이선스/기관 기준 노출 시나리오. page, pageSize, search, platform, status 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>마스터는 기관·라이선스에 따라 접근 가능한 시나리오만 조회.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>목록 건수 등 (상단 카드 있으면).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 시나리오 목록 API</li><li><span class="flow-num">2</span> 행 클릭 → 시나리오 상세(조회/편집)</li></ul></section>
+      </article>
+
+      <article id="scenario-detail" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">시나리오 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/11-scenario-detail.png" alt="시나리오 상세" /><figcaption>시나리오 상세</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>시나리오 하나의 상세. 조회·미리보기·편집(권한 있을 때).</p>
+          <table><tr><th>경로</th><td><code>/master/scenarios</code> 등에서 상세 진입</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /scenario/{id}</code>. 편집 시 <code>PUT /scenario/{id}</code>. 스튜디오 접근은 라이선스(pro 등)에 따라 제한될 수 있음.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>접근 권한: 라이선스·기관 정책에 따름.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET /scenario/{id} → 상세 표시, 편집 시 PUT</li></ul></section>
+      </article>
+
+      <article id="organization" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">관리자 설정(기관)</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/master-all/09-organization.png" alt="관리자 설정(기관)" /><figcaption>관리자 설정(기관)</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터가 소속 기관(MyOrganization) 정보를 보는 화면. 기관명·라이선스·사용자 등 요약, 설정 링크.</p>
+          <table><tr><th>경로</th><td><code>/master/organization</code></td></tr><tr><th>표시</th><td>기관 정보, 라이선스 요약, 사용자 수 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /organization/me</code> 또는 현재 사용자 organizationId로 <code>GET /organization/{id}</code>. 기관 상세·라이선스 목록 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>마스터는 본인 소속 기관만 조회. 수정 권한은 정책에 따라(일부 필드만 또는 Admin만).</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>라이선스 수, 사용자 수 등 요약.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 기관 조회 API → 화면 표시</li></ul></section>
+      </article>
+
+      <article id="order-management" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">주문관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/19-주문관리.png" alt="주문관리" /><figcaption>주문관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>마스터 소속 기관에 연관된 주문 목록. 주문번호 클릭 → 주문 상세. 유형·상태·기간 필터, 검색. (Admin 주문관리와 유사하나 기관 범위 제한)</p>
+          <table><tr><th>경로</th><td><code>/master/order-management</code></td></tr><tr><th>테이블</th><td>주문번호, 주문자명, 유형, 주문금액, 판매처, 주문상태, 수정일시 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /order/list</code> — organizationId(마스터 소속) 또는 기관 주문만 필터. page, pageSize, status, startDate, endDate, search.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>마스터는 본인 기관 주문만 조회. 상태 변경 권한은 정책에 따름.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>총 주문금액, 유형별 금액·수익율 등 (목록 API summary 또는 별도 집계).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 주문 목록 API(기관 기준)</li><li><span class="flow-num">2</span> 주문번호 클릭 → GET /order/{orderId} → 주문 상세</li></ul></section>
+      </article>
+
+      <article id="workflow" class="page-article">
+        <div class="page-header"><span class="role">Master</span><span class="sep">|</span><span class="page-name">워크플로우</span></div>
+        <section class="page-section">
+          <h2>오픈클래스 개설</h2>
+          <p class="flow-note">※ 권한: Admin, 제휴기관 Master만 가능</p>
+          <div class="mermaid">flowchart TB
+    A[클래스 관리] --> B[오픈클래스 생성]
+    B --> C[프로덕트 선택]
+    C --> D[수강기간 가격 할인]
+    D --> E[커리큘럼 편집]
+    E --> F[저장]</div>
+        </section>
+        <section class="page-section">
+          <h2>기관클래스 개설</h2>
+          <div class="mermaid">flowchart TB
+    A[클래스 관리] --> B[기관클래스 생성]
+    B --> C[제목 비공개 이수조건]
+    C --> D[시나리오 커리큘럼 설정]
+    D --> E[수강기간 설정]
+    E --> F[저장]</div>
+        </section>
+        <section class="page-section">
+          <h2>마이클래스 학습</h2>
+          <div class="mermaid">flowchart TB
+    A[마이클래스 목록] --> B[마이클래스 상세]
+    B --> C[세션 참여]
+    C --> D[결과보기]</div>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      var links = document.querySelectorAll('.sidebar nav .nav-link');
+      var articles = document.querySelectorAll('.main .page-article');
+      var workflowRendered = false;
+      function setActive() {
+        var hash = location.hash || '#workflow';
+        var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+        links.forEach(function(a) {
+          var href = a.getAttribute('href') || '';
+          a.classList.toggle('active', href === '#' + id || href === hash);
+        });
+        articles.forEach(function(art) { art.style.display = art.id === id ? (art.id === 'workflow' ? 'grid' : 'block') : 'none'; });
+        if (id === 'workflow' && typeof mermaid !== 'undefined' && !workflowRendered) {
+          workflowRendered = true;
+          mermaid.run({ querySelector: '#workflow .mermaid', suppressErrors: true });
+        }
+      }
+      window.addEventListener('hashchange', setActive);
+      window.addEventListener('load', function() {
+        if (!location.hash) location.hash = 'workflow';
+        setActive();
+      });
+    })();
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({ startOnLoad: false, flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, theme: 'neutral' });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>백엔드 참고: Admin 사용자 워크플로우 & 데이터 흐름</title>
+  <meta name="description" content="Admin 페이지별 스크린샷, 화면 요약, API 명세, 비즈니스 규칙, 통계, 연관 API 플로우. 백엔드 개발자용." />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root { --sidebar-width: 220px; --header-height: 56px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; line-height: 1.6; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-width); flex-shrink: 0; background: #f9fafb; border-right: 1px solid #e5e7eb; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar-title { padding: 16px; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sidebar nav { padding: 0 0 24px 0; }
+    .sidebar nav a { display: block; padding: 10px 16px; font-size: 0.9rem; color: #374151; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar nav a:hover { background: #f3f4f6; color: #111; }
+    .sidebar nav a.active { background: #eff6ff; color: #1d4ed8; border-left-color: #2563eb; font-weight: 500; }
+    .main { flex: 1; padding: 0 32px 48px; max-width: 920px; }
+    .page-header { display: flex; align-items: center; gap: 12px; height: var(--header-height); border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+    .page-header .role { font-size: 0.8rem; color: #6b7280; font-weight: 500; }
+    .page-header .sep { color: #d1d5db; }
+    .page-header .page-name { font-size: 1.25rem; font-weight: 600; color: #111; }
+    section.page-section { margin-bottom: 48px; }
+    section.page-section h2 { font-size: 1rem; font-weight: 600; color: #374151; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+    section.page-section h3 { font-size: 0.95rem; color: #4b5563; margin: 16px 0 8px 0; }
+    section.page-section p { margin: 8px 0; font-size: 0.9rem; }
+    section.page-section ul { margin: 8px 0; padding-left: 24px; }
+    section.page-section li { margin: 4px 0; }
+    .screenshot { margin: 12px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; max-width: 100%; }
+    .screenshot img { display: block; max-width: 100%; height: auto; }
+    .screenshot figcaption { padding: 8px 12px; font-size: 0.8rem; color: #6b7280; background: #f9fafb; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.875rem; margin: 12px 0; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; }
+    th { background: #f9fafb; font-weight: 600; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+    .flow-list { list-style: none; padding: 0; margin: 12px 0; }
+    .flow-list li { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; display: flex; align-items: baseline; gap: 8px; }
+    .flow-list li:last-child { border-bottom: none; }
+    .flow-num { flex-shrink: 0; width: 24px; height: 24px; background: #e0e7ff; color: #3730a3; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+    .main .page-article { display: none; }
+    .main .page-article:first-child { display: block; }
+    .role-nav { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 0.8rem; }
+    .role-nav a { color: #2563eb; text-decoration: none; margin-right: 8px; }
+    .role-nav a:hover { text-decoration: underline; }
+    .role-nav span.current { color: #374151; font-weight: 600; margin-right: 8px; }
+    .flow-caption { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 24px 0 8px 0; }
+    .flow-caption:first-of-type { margin-top: 0; }
+    .flow-note { font-size: 0.8rem; color: #6b7280; margin: 4px 0 12px 0; }
+    .mermaid { margin: 16px 0; }
+    .mermaid svg { max-width: 100%; }
+    #workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-content: start; }
+    #workflow > .page-header { grid-column: 1 / -1; }
+    #workflow .page-section { min-width: 0; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="role-nav">
+        <a href="backend-workflow-student.html">Student</a>
+        <a href="backend-workflow-master.html">Master</a>
+        <span class="current">Admin</span>
+      </div>
+      <div class="sidebar-title">Admin · 페이지</div>
+      <nav>
+        <a href="#workflow" class="nav-link">워크플로우</a>
+        <a href="#dashboard" class="nav-link">대시보드</a>
+        <a href="#organizations" class="nav-link">기관고객 관리</a>
+        <a href="#organization-detail" class="nav-link">기관고객 상세</a>
+        <a href="#class-management" class="nav-link">클래스 관리</a>
+        <a href="#open-class-create" class="nav-link">오픈클래스 생성</a>
+        <a href="#open-class-edit" class="nav-link">오픈클래스 편집</a>
+        <a href="#class-create" class="nav-link">기관클래스 생성</a>
+        <a href="#class-edit" class="nav-link">기관클래스 편집</a>
+        <a href="#product-management" class="nav-link">프로덕트 관리</a>
+        <a href="#product-create" class="nav-link">프로덕트 생성</a>
+        <a href="#product-detail" class="nav-link">프로덕트 상세</a>
+        <a href="#product-edit" class="nav-link">프로덕트 편집</a>
+        <a href="#user-management" class="nav-link">사용자 관리</a>
+        <a href="#scenarios" class="nav-link">시나리오 관리</a>
+        <a href="#order-management" class="nav-link">주문 관리</a>
+        <a href="#order-create" class="nav-link">주문 등록</a>
+        <a href="#order-detail" class="nav-link">주문 상세</a>
+        <a href="#order-items" class="nav-link">주문생성(품목추가)</a>
+        <a href="#assets" class="nav-link">에셋 관리</a>
+        <a href="#settings" class="nav-link">설정</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <article id="dashboard" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">대시보드</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/01-dashboard.png" alt="대시보드" /><figcaption>대시보드</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>관리자 홈. 기간 필터·활동 필터·검색·뷰(타임라인/리스트). 인기 시나리오 기간·정렬(views/simulationCount). 최근 활동, 기관·주문 요약, 카드/링크 클릭 → 해당 상세.</p>
+          <table><tr><th>경로</th><td><code>/admin/dashboard</code></td></tr><tr><th>사용자 행동</th><td>기간/필터/검색/뷰 전환, 인기 시나리오 기간·정렬, 카드 클릭</td></tr><tr><th>표시</th><td>recentActivities, 인기 시나리오 차트, 기관/주문 요약</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /dashboard/admin</code> — startDate, endDate, activeFilter, popularScenarioPeriod(1month|3months|6months|1year), popularScenarioSortBy(views|simulationCount). 응답: 활동 목록, 인기 시나리오 집계, 기관/주문 요약.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>기본 기간 예: 6개월 전 ~ 오늘. 인기 시나리오는 기간·정렬 기준에 따라 views 또는 simulationCount 집계.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>인기 시나리오: 기간 내 views 또는 simulationCount. 기관 수, 주문 금액 등 요약.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 대시보드 API 호출</li><li><span class="flow-num">2</span> 링크 → 기관 상세, 시나리오 상세 등</li></ul></section>
+      </article>
+
+      <article id="organizations" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">기관고객 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/02-기관고객관리.png" alt="기관고객 관리" /><figcaption>기관고객 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>기관(고객) 목록. 통계 카드(전체/활성/신규/만료예정) 클릭 시 필터. 신규 등록·행 클릭 → 기관 상세·수정·삭제.</p>
+          <table><tr><th>경로</th><td><code>/admin/organizations</code></td></tr><tr><th>테이블</th><td>기관명, 국가, 유형, 상태, 라이선스 유형/수, 디바이스/사용자 수, 등록일, 만료일, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /organization/list</code> — page, pageSize, search, status, activeStatFilter(all|active|new|expiring), startDate, endDate. 응답: 목록 + totalCount, (선택) activeCount, newCount, expiringSoonCount.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>신규: 등록일이 오늘 기준 30일 이내.</li><li>만료 예정: 만료일이 오늘 ~ 30일 이내.</li><li>삭제 시 연관 데이터 정책(소프트 삭제 등) 정의.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <table><tr><th>항목</th><th>산출</th></tr><tr><td>전체 기관고객수</td><td>totalCount</td></tr><tr><td>활성</td><td>status === 'active' 건수</td></tr><tr><td>신규</td><td>등록일 30일 이내</td></tr><tr><td>만료 예정 라이선스</td><td>만료일 30일 이내</td></tr></table></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 기관 목록 API</li><li><span class="flow-num">2</span> 신규 등록 → POST /organization</li><li><span class="flow-num">3</span> 행 클릭 → GET /organization/{id} → 기관 상세</li></ul></section>
+      </article>
+
+      <article id="organization-detail" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">기관고객 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/03-기관고객-상세.png" alt="기관고객 상세" /><figcaption>기관고객 상세</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>기관 하나의 상세. 기본 정보, 라이선스 목록, 노트. 수정·노트 추가·라이선스 행 클릭 → 라이선스 상세.</p>
+          <table><tr><th>경로</th><td><code>/admin/organizations/:id</code></td></tr><tr><th>표시</th><td>기관 정보, 라이선스 목록(명, 유형, 수량, 기간, 상태), 노트 목록</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /organization/{id}</code>, <code>PUT /organization/{id}</code>. 라이선스: <code>GET /organization/{id}/licenses</code> 또는 상세 응답에 포함. 노트: 목록/추가 API.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin만 기관 전체 조회·수정. 라이선스 만료일·상태 갱신 규칙.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>라이선스 수, 사용자 수 등 (상세 응답 또는 별도 집계).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET /organization/{id} + 라이선스/노트</li><li><span class="flow-num">2</span> 수정 → PUT, 노트 추가 → POST 노트</li></ul></section>
+      </article>
+
+      <article id="class-management" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">클래스 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/04-클래스관리.png" alt="클래스 관리" /><figcaption>클래스 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>전체 오픈/기관 클래스 목록. 검색·유형·활성·기간 필터. 오픈클래스/기관클래스 생성, 행 클릭 → 상세, 수정/삭제.</p>
+          <table><tr><th>경로</th><td><code>/admin/class-management</code></td></tr><tr><th>테이블</th><td>유형, 클래스명, 기관명, 시나리오 수, 참가자, 이수율, 소요시간, 생성자, 생성일, 수강기간, 상태, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /class/list</code> (Admin용 전체) — organizationId(선택), page, pageSize, searchTerm, type(open|organization), isActive, startDate, endDate.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin은 전체 기관 클래스 조회·수정·삭제 가능. 오픈/기관 유형 구분.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>전체/오픈/기관 클래스 수 (목록 totalCount 또는 별도 집계).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 클래스 목록 API</li><li><span class="flow-num">2</span> 오픈/기관클래스 생성·상세·편집 API</li></ul></section>
+      </article>
+
+      <article id="open-class-create" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">오픈클래스 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/05-오픈클래스-생성.png" alt="오픈클래스 생성" /><figcaption>오픈클래스 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>Admin이 오픈클래스 생성. 프로덕트·수강기간·가격·할인·공개/비공개·커리큘럼 등 입력 후 저장.</p>
+          <table><tr><th>경로</th><td><code>/admin/open-class/create</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /open-class</code> (또는 프로덕트 기반 클래스 API). organizationId, productId, 수강기간, 가격, 할인, isPrivate 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li><strong>권한</strong>: 오픈클래스 개설은 Admin과 제휴기관 Master만 가능.</li><li>공개 시 참가비·할인 검증. 비공개 시 라이선스 설정. Admin은 모든 기관 대상 생성 가능(정책에 따름).</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 프로덕트/기관 목록(선택)</li><li><span class="flow-num">2</span> POST 오픈클래스 → 클래스 관리 반영</li></ul></section>
+      </article>
+
+      <article id="open-class-edit" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">오픈클래스 편집</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/08-오픈클래스-편집.png" alt="오픈클래스 편집" /><figcaption>오픈클래스 편집</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>오픈클래스 하나 수정. GET 상세 후 필드 변경·저장.</p>
+          <table><tr><th>경로</th><td><code>/admin/open-class/:id/edit</code> 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /open-class/{id}</code>, <code>PUT /open-class/{id}</code>.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>기존 오픈클래스 수정. 참가 중인 경우 수강기간·가격 변경 제한 등 정책.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET → 수정 → PUT → 클래스 관리</li></ul></section>
+      </article>
+
+      <article id="class-create" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">기관클래스 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/06-기관클래스-생성.png" alt="기관클래스 생성" /><figcaption>기관클래스 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>기관 전용 클래스 생성. 기관·라이선스 선택, 제목·비공개·이수 조건·커리큘럼·수강기간 등.</p>
+          <table><tr><th>경로</th><td><code>/admin/class/create</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /class</code> — CreateClassRequestDto. Admin은 organizationId 지정 가능(기관 선택).</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>선택 기관의 라이선스 범위 내. isPrivate 시 pw 필수.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 기관·라이선스·시나리오 목록</li><li><span class="flow-num">2</span> POST /class → 클래스 관리</li></ul></section>
+      </article>
+
+      <article id="class-edit" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">기관클래스 편집</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/10-기관클래스-편집.png" alt="기관클래스 편집" /><figcaption>기관클래스 편집</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>기관클래스 하나 수정. GET 상세 후 제목·비공개·이수 조건·커리큘럼·수강기간 등 저장.</p>
+          <table><tr><th>경로</th><td><code>/admin/class/edit/:id</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /class/{id}</code>, <code>PUT /class/{id}</code>. UpdateClassRequestDto.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>기관 소유 클래스만. 참가 진행 중일 때 변경 제한 정책.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET → 수정 → PUT</li></ul></section>
+      </article>
+
+      <article id="product-management" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">프로덕트 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/11-프로덕트관리.png" alt="프로덕트 관리" /><figcaption>프로덕트 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>전체 프로덕트 목록. 검색·활성 필터·정렬(주문건수·금액·판매합계 등). 생성·행 클릭 → 상세/편집.</p>
+          <table><tr><th>경로</th><td><code>/admin/product-management</code></td></tr><tr><th>테이블</th><td>프로덕트명, 기관주문건수, 기관주문금액, 온라인 주문건수, 온라인 결제금액, 판매합계, 등록일, 활성여부, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /product/list</code> — Admin은 organizationId 없이 전체 또는 필터. page, pageSize, searchTerm, isActive, sortBy, sortOrder.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin은 모든 기관 프로덕트 조회·수정 가능(정책에 따름).</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>컬럼 값(주문건수·금액·판매합계) 및 정렬.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 프로덕트 목록</li><li><span class="flow-num">2</span> 생성/상세/편집 API</li></ul></section>
+      </article>
+
+      <article id="product-create" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">프로덕트 생성</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/12-프로덕트-생성.png" alt="프로덕트 생성" /><figcaption>프로덕트 생성</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>프로덕트 생성. 기관 선택(Admin), 제목·설명·가격·커리큘럼 등.</p>
+          <table><tr><th>경로</th><td><code>/admin/product/create</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /product</code>. Admin은 organizationId 지정 가능.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>필수 필드·가격 검증.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> POST /product → 프로덕트 관리</li></ul></section>
+      </article>
+
+      <article id="product-detail" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">프로덕트 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/13-프로덕트-상세.png" alt="프로덕트 상세" /><figcaption>프로덕트 상세</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>프로덕트 하나 조회. 상세/편집 이동.</p>
+          <table><tr><th>경로</th><td><code>/admin/product/detail/:id</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /product/{id}</code>.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin 전체 조회.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET /product/{id} → 편집 시 PUT</li></ul></section>
+      </article>
+
+      <article id="product-edit" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">프로덕트 편집</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/14-프로덕트-편집.png" alt="프로덕트 편집" /><figcaption>프로덕트 편집</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>프로덕트 수정. GET 후 필드 변경·저장.</p>
+          <table><tr><th>경로</th><td><code>/admin/product/detail/:id</code> 편집 모드</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /product/{id}</code>, <code>PUT /product/{id}</code>.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>기존 프로덕트 수정.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET → 수정 → PUT</li></ul></section>
+      </article>
+
+      <article id="user-management" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">사용자 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/15-사용자관리.png" alt="사용자 관리" /><figcaption>사용자 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>전체 사용자 목록. 회원 일괄 등록(엑셀), 템플릿 다운로드, 엑셀 내보내기. 검색·고객유형·계정유형·역할·상태·날짜 필터. 통계 카드 클릭 시 필터. 수정(정보·비밀번호).</p>
+          <table><tr><th>경로</th><td><code>/admin/users</code></td></tr><tr><th>테이블</th><td>로그인ID, 이름, 이메일, 고객유형, 기관명, 역할, 계정유형, 등록일, 최근 로그인, 상태, 수강 클래스 수, 시뮬레이션 수, 관리</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /user/list</code> — page, pageSize, search(로그인ID/이름/이메일/기관명), customerType, accountType, role, status, dateFilterType, startDate, endDate. <code>POST /user/bulk</code>(엑셀 일괄), <code>GET /user/template</code>, <code>GET /user/export</code>. <code>PUT /user/{id}</code>, <code>PUT /user/{id}/password</code>.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>고객유형: 기관/개인. 계정유형: 정회원/게스트. 역할: Student/Master/Admin. 상태: 활성/비활성/탈퇴.</li><li>신규: 등록일 30일 이내.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>전체, 기관/개인, 활성/탈퇴, 신규, 역할별(masters/students/guests). API totalCount 또는 집계.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 사용자 목록 API</li><li><span class="flow-num">2</span> 일괄 등록/템플릿/내보내기</li><li><span class="flow-num">3</span> 수정 → PUT 사용자/비밀번호</li></ul></section>
+      </article>
+
+      <article id="scenarios" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">시나리오 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/17-시나리오관리.png" alt="시나리오 관리" /><figcaption>시나리오 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>시나리오 목록. 제목/링크 클릭 → 상세. 검색·필터(플랫폼·상태). 생성/수정(구현 시).</p>
+          <table><tr><th>경로</th><td><code>/admin/scenarios</code></td></tr><tr><th>테이블</th><td>시나리오명, 코드, 플랫폼, 상태, 수정일 등</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /scenario/list</code> — Admin 전체. page, pageSize, search, platform, status.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin은 전체 시나리오 조회·편집 권한(정책에 따름).</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>목록 건수 등.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 시나리오 목록</li><li><span class="flow-num">2</span> 상세/편집 API</li></ul></section>
+      </article>
+
+      <article id="order-management" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">주문 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/19-주문관리.png" alt="주문 관리" /><figcaption>주문 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>전체 주문 목록. 주문 등록 버튼, 주문번호 클릭 → 상세. 유형 탭(전체/구독/장비·물품/커스텀/오픈클래스)·상태·판매처·기간 필터, 검색(주문자명). 주문상태 변경(드롭다운).</p>
+          <table><tr><th>경로</th><td><code>/admin/order-management</code></td></tr><tr><th>테이블</th><td>주문번호, 주문자명, 주문유형, 주문금액, 예상매출이익, 판매처, 주문상태, 수정일시</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /order/list</code> — page, pageSize, type(탭), status, salesChannel, startDate, endDate, search(ordererName). <code>PUT /order/{id}/status</code> (상태 변경).</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>상태: 데모/견적, 주문진행, 주문완료, 취소요청, 취소승인, 환불완료 등. 허용 상태 전이 정의 필요.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>총 주문금액, 총 수익율, 유형별 주문금액·수익율. 목록 API summary 또는 집계 API.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 주문 목록 API</li><li><span class="flow-num">2</span> 주문 등록 → POST /order</li><li><span class="flow-num">3</span> 주문번호 클릭 → 주문 상세</li><li><span class="flow-num">4</span> 상태 변경 → PUT /order/{id}/status</li></ul></section>
+      </article>
+
+      <article id="order-create" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">주문 등록</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20-주문등록.png" alt="주문 등록" /><figcaption>주문 등록</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>주문 생성 진입. 주문유형 선택(구독/장비·물품/커스텀 서비스/오픈클래스), 주문자(기관) 검색·선택, 판매처, 통화. 품목 추가 버튼 → 유형별 품목 추가 화면(20a~20d). 제출 시 유효성 검사 후 주문 API 호출.</p>
+          <table><tr><th>경로</th><td><code>/admin/order-management/create</code></td></tr><tr><th>입력</th><td>productType, selectedOrgId, currency, orderItemRows(품목 테이블)</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>POST /order</code> — ordererOrganizationId(또는 ordererUserId), salesChannel, currency, items[{ productId, optionId, period, periodUnit, quantity, unitPrice, costPrice }]. 유형별로 productId·optionId·period 등 조합.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <ul><li>주문자(기관) 필수. 품목 1건 이상. 유형별 필수 필드(구독: period/plan, 장비: quantity/unitPrice 등).</li><li>VAT 포함/별도, vatRate 적용 시 합계 계산.</li></ul></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>품목 합계 = Σ(quantity × unitPrice), VAT 등.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 기관 검색 API(주문자 선택)</li><li><span class="flow-num">2</span> 프로덕트/옵션 목록(품목 추가 시)</li><li><span class="flow-num">3</span> POST /order → 주문 관리 목록 반영</li></ul></section>
+      </article>
+
+      <article id="order-detail" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">주문 상세</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20e-주문상세조회.png" alt="주문 상세" /><figcaption>주문 상세조회</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>주문 하나의 상세. 기본 정보(주문번호, 주문자, 유형, 판매처, 통화, 금액, 비용, 예상/실제 이익, 상태, 비고, 일시). 품목 테이블(유형별: 프로덕트명, 옵션, 기간, 수량, 단가, 금액). 목록으로·수정·상태 변경.</p>
+          <table><tr><th>경로</th><td><code>/admin/order-management/:orderId</code></td></tr><tr><th>표시</th><td>기본 정보 + 품목(구독/장비·물품/커스텀·오픈클래스 유형별 컬럼)</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /order/{orderId}</code> — 주문 헤더 + items[]. productName, optionName, period, periodUnit, quantity, unitPrice, costPrice, amount, startDate.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>주문금액 = Σ(items.amount). 상태 변경 시 허용 전이만.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>주문금액, 예상이익, 실제이익 등.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> GET /order/{orderId}</li><li><span class="flow-num">2</span> 목록으로 → 주문 관리</li><li><span class="flow-num">3</span> 상태 변경 → PUT /order/{id}/status</li></ul></section>
+      </article>
+
+      <article id="order-items" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">주문생성(품목추가)</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20a-주문생성-구독-품목추가.png" alt="주문생성 구독 품목추가" /><figcaption>구독 품목추가</figcaption></figure>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20b-주문생성-장비물품-품목추가.png" alt="장비·물품 품목추가" /><figcaption>장비·물품 품목추가</figcaption></figure>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20c-주문생성-오픈클래스-품목추가.png" alt="오픈클래스 품목추가" /><figcaption>오픈클래스 품목추가</figcaption></figure>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/20d-주문생성-커스텀서비스-품목추가.png" alt="커스텀 서비스 품목추가" /><figcaption>커스텀 서비스 품목추가</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>주문 등록 시 유형별 품목 추가. 구독: 프로덕트·구독플랜·구독기간·수량·단가. 장비·물품: 프로덕트·옵션·수량·단가·원가. 오픈클래스/커스텀: 프로덕트·기간·수량·단가. 프로덕트 추가 링크로 신규 프로덕트 생성 이동 가능.</p>
+          <table><tr><th>유형</th><th>품목 필드</th></tr><tr><td>구독</td><td>productId, optionId(플랜), period, periodUnit, quantity, unitPrice</td></tr><tr><td>장비·물품</td><td>productId, optionId, quantity, unitPrice, costPrice</td></tr><tr><td>오픈클래스/커스텀</td><td>productId, period, quantity, unitPrice</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p>품목 행은 주문 등록 폼의 일부. 제출 시 <code>POST /order</code>에 items 배열로 전달. 프로덕트/옵션 검색: <code>GET /product/list</code>, <code>GET /product/{id}/options</code> 등.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>유형별 필수 필드. 수량·단가 ≥ 0. 금액 = quantity × unitPrice(유형별 계산).</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>품목 합계, VAT(정책에 따라).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 주문 등록 화면에서 유형 선택 → 품목 추가 모달/페이지</li><li><span class="flow-num">2</span> 프로덕트·옵션 조회 API로 선택지 제공</li><li><span class="flow-num">3</span> 품목 행 추가 후 주문 등록 제출 → POST /order</li></ul></section>
+      </article>
+
+      <article id="assets" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">에셋 관리</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/21-에셋-이벤트관리.png" alt="에셋 이벤트 관리" /><figcaption>에셋 - 이벤트 관리</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>에셋(이벤트, 증상, 태스크, 액션, 대화, 아이템 등) 목록·생성·수정·삭제. 각 타입별 목록·필터·검색·행 클릭 → 상세/편집.</p>
+          <table><tr><th>경로</th><td><code>/admin/assets/*</code> (이벤트/증상/태스크/액션/대화/아이템)</td></tr><tr><th>표시</th><td>타입별 컬럼(이름, 코드, 생성일, 수정일, 관리)</td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p>에셋 타입별 CRUD. 예: <code>GET/POST /asset/event</code>, <code>GET/POST /asset/symptom</code>, <code>GET/POST /asset/task</code> 등. 또는 통합 <code>GET /asset/list?type=event</code>.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>Admin만 에셋 관리. 시나리오에서 참조 중인 에셋 삭제 제한 등 정책.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>타입별 건수 등(화면에 있으면).</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 에셋 타입별 목록 API</li><li><span class="flow-num">2</span> 생성/수정/삭제 → 해당 CRUD API</li></ul></section>
+      </article>
+
+      <article id="settings" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">설정</span></div>
+        <section class="page-section"><h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/admin_20250213/29-설정.png" alt="설정" /><figcaption>설정</figcaption></figure></section>
+        <section class="page-section"><h2>2. 화면 요약</h2>
+          <p>Admin 본인 프로필·설정. 프로필 수정, 비밀번호 변경, 알림 설정 등. Student 설정과 동일 컴포넌트(Settings), 경로 /settings.</p>
+          <table><tr><th>경로</th><td><code>/settings</code></td></tr></table></section>
+        <section class="page-section"><h2>3. API 명세</h2>
+          <p><code>GET /user/profile</code>, <code>PATCH /user/profile</code>. 비밀번호 변경·이메일 인증 등 계정 API.</p></section>
+        <section class="page-section"><h2>4. 비즈니스 규칙</h2>
+          <p>본인만 조회·수정.</p></section>
+        <section class="page-section"><h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p></section>
+        <section class="page-section"><h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list"><li><span class="flow-num">1</span> 프로필 조회/수정 API</li></ul></section>
+      </article>
+
+      <article id="workflow" class="page-article">
+        <div class="page-header"><span class="role">Admin</span><span class="sep">|</span><span class="page-name">워크플로우</span></div>
+        <section class="page-section">
+          <h2>프로덕트 → 오픈클래스</h2>
+          <p class="flow-note">※ 권한: Admin, 제휴기관 Master만 가능</p>
+          <div class="mermaid">flowchart TB
+    A[프로덕트 관리] --> B[프로덕트 생성]
+    B --> C[제목 가격 커리큘럼 입력]
+    C --> D[저장]
+    D --> E[클래스 관리]
+    E --> F[오픈클래스 생성]
+    F --> G[프로덕트 선택]
+    G --> H[수강기간 가격 설정]
+    H --> I[커리큘럼 편집]
+    I --> J[저장]</div>
+        </section>
+        <section class="page-section">
+          <h2>기관·주문 관리</h2>
+          <div class="mermaid">flowchart TB
+    A[기관 관리] --> B[기관 상세]
+    B --> C[라이선스 노트 확인]
+    C --> D[주문 관리]
+    D --> E[주문 등록 또는 주문 상세]</div>
+        </section>
+        <section class="page-section">
+          <h2>주문 생성 유형별</h2>
+          <div class="mermaid">flowchart TB
+    A[주문 등록] --> B[주문자 기관 검색 선택]
+    B --> C[유형 선택]
+    C --> D[구독 장비 오픈클래스 커스텀]
+    D --> E[품목 추가 유형별]
+    E --> F[통화 판매처]
+    F --> G[제출]</div>
+        </section>
+        <section class="page-section">
+          <h2>기관클래스 생성·편집</h2>
+          <div class="mermaid">flowchart TB
+    A[클래스 관리] --> B[기관클래스 생성]
+    B --> C[기관 라이선스 선택]
+    C --> D[제목 비공개 이수조건]
+    D --> E[커리큘럼 시나리오 설정]
+    E --> F[수강기간]
+    F --> G[저장]</div>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      var links = document.querySelectorAll('.sidebar nav .nav-link');
+      var articles = document.querySelectorAll('.main .page-article');
+      var workflowRendered = false;
+      function setActive() {
+        var hash = location.hash || '#workflow';
+        var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+        links.forEach(function(a) {
+          var href = a.getAttribute('href') || '';
+          a.classList.toggle('active', href === '#' + id || href === hash);
+        });
+        articles.forEach(function(art) { art.style.display = art.id === id ? (art.id === 'workflow' ? 'grid' : 'block') : 'none'; });
+        if (id === 'workflow' && typeof mermaid !== 'undefined' && !workflowRendered) {
+          workflowRendered = true;
+          mermaid.run({ querySelector: '#workflow .mermaid', suppressErrors: true });
+        }
+      }
+      window.addEventListener('hashchange', setActive);
+      window.addEventListener('load', function() {
+        if (!location.hash) location.hash = 'workflow';
+        setActive();
+      });
+    })();
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({ startOnLoad: false, flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, theme: 'neutral' });
+    }
+  </script>
+</body>
+</html>

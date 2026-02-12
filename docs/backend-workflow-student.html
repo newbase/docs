@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>백엔드 참고: Student 사용자 워크플로우 & 데이터 흐름</title>
+  <meta name="description" content="Student 페이지별 스크린샷, 화면 요약, API 명세, 비즈니스 규칙, 통계, 연관 API 플로우. 백엔드 개발자용." />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root { --sidebar-width: 220px; --header-height: 56px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; line-height: 1.6; }
+    .layout { display: flex; min-height: 100vh; }
+    /* Left sidebar */
+    .sidebar { width: var(--sidebar-width); flex-shrink: 0; background: #f9fafb; border-right: 1px solid #e5e7eb; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar-title { padding: 16px; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sidebar nav { padding: 0 0 24px 0; }
+    .sidebar nav a { display: block; padding: 10px 16px; font-size: 0.9rem; color: #374151; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar nav a:hover { background: #f3f4f6; color: #111; }
+    .sidebar nav a.active { background: #eff6ff; color: #1d4ed8; border-left-color: #2563eb; font-weight: 500; }
+    /* Main */
+    .main { flex: 1; padding: 0 32px 48px; max-width: 920px; }
+    .page-header { display: flex; align-items: center; gap: 12px; height: var(--header-height); border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+    .page-header .role { font-size: 0.8rem; color: #6b7280; font-weight: 500; }
+    .page-header .sep { color: #d1d5db; }
+    .page-header .page-name { font-size: 1.25rem; font-weight: 600; color: #111; }
+    section.page-section { margin-bottom: 48px; }
+    section.page-section h2 { font-size: 1rem; font-weight: 600; color: #374151; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+    section.page-section h3 { font-size: 0.95rem; color: #4b5563; margin: 16px 0 8px 0; }
+    section.page-section p { margin: 8px 0; font-size: 0.9rem; }
+    section.page-section ul { margin: 8px 0; padding-left: 24px; }
+    section.page-section li { margin: 4px 0; }
+    .screenshot { margin: 12px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; max-width: 100%; }
+    .screenshot img { display: block; max-width: 100%; height: auto; }
+    .screenshot figcaption { padding: 8px 12px; font-size: 0.8rem; color: #6b7280; background: #f9fafb; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.875rem; margin: 12px 0; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; }
+    th { background: #f9fafb; font-weight: 600; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+    .flow-list { list-style: none; padding: 0; margin: 12px 0; }
+    .flow-list li { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; display: flex; align-items: baseline; gap: 8px; }
+    .flow-list li:last-child { border-bottom: none; }
+    .flow-num { flex-shrink: 0; width: 24px; height: 24px; background: #e0e7ff; color: #3730a3; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+    .main .page-article { display: none; }
+    .main .page-article:first-child { display: block; }
+    .role-nav { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 0.8rem; }
+    .role-nav a { color: #2563eb; text-decoration: none; margin-right: 8px; }
+    .role-nav a:hover { text-decoration: underline; }
+    .role-nav span.current { color: #374151; font-weight: 600; margin-right: 8px; }
+    .flow-caption { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 24px 0 8px 0; }
+    .flow-caption:first-of-type { margin-top: 0; }
+    .mermaid { margin: 16px 0; }
+    .mermaid svg { max-width: 100%; }
+    #workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-content: start; }
+    #workflow > .page-header { grid-column: 1 / -1; }
+    #workflow .page-section { min-width: 0; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="role-nav">
+        <span class="current">Student</span>
+        <a href="backend-workflow-master.html">Master</a>
+        <a href="backend-workflow-admin.html">Admin</a>
+      </div>
+      <div class="sidebar-title">Student · 페이지</div>
+      <nav>
+        <a href="#workflow" class="nav-link">워크플로우</a>
+        <a href="#dashboard" class="nav-link">대시보드</a>
+        <a href="#my-classes-list" class="nav-link">마이클래스 목록</a>
+        <a href="#my-class-detail" class="nav-link">마이클래스 상세</a>
+        <a href="#join-by-code" class="nav-link">초대코드 등록</a>
+        <a href="#session-results" class="nav-link">세션 참여 · 결과보기</a>
+        <a href="#cart" class="nav-link">장바구니</a>
+        <a href="#order-confirm" class="nav-link">주문확인</a>
+        <a href="#orders" class="nav-link">주문내역</a>
+        <a href="#open-class-list" class="nav-link">오픈클래스 목록</a>
+        <a href="#open-class-detail" class="nav-link">오픈클래스 상세</a>
+        <a href="#settings" class="nav-link">설정</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <!-- ========== 1. 대시보드 ========== -->
+      <article id="dashboard" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">대시보드</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/01-dashboard.png" alt="대시보드" /><figcaption>대시보드</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>학생이 로그인 후 처음 보는 홈 화면. 기간을 정해 최근 활동(클래스·시뮬레이션 이력)을 타임라인/리스트로 보고, 시뮬레이션 수·학습 시간·이수 클래스 수·Perfect 획득 수 등 통계를 확인한다. 클래스 카드나 환자 카드를 누르면 해당 상세로 이동한다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/dashboard</code></td></tr>
+            <tr><th>사용자 행동</th><td>기간 필터 변경, 전체/진행중/완료 필터, 검색, 뷰 전환(타임라인/리스트), 카드 클릭 → 상세 이동</td></tr>
+            <tr><th>표시 데이터</th><td>최근 클래스(제목, 진행률, 상태, 마지막 접근), 환자/시나리오 리스트(이름, 진단, Care Score, 소요시간 등), 전체 이력(제목, 일시, 소요시간, 점수)</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <p>대시보드용 데이터는 다음 조합으로 제공될 수 있다.</p>
+          <ul>
+            <li><strong>최근 활동/클래스 목록</strong>: 사용자별 최근 수강 클래스·접근 이력 (기간 필터: startDate, endDate)</li>
+            <li><strong>시뮬레이션 이력</strong>: 사용자별 시뮬레이션 실행 이력 (기간 내, 점수·소요시간·시나리오 ID 등)</li>
+            <li><strong>통계 집계</strong>: 기간 내 시뮬레이션 수, 총 학습 시간, 이수 클래스 수, 참여 시나리오 수, Perfect(100점) 획득 수</li>
+          </ul>
+          <p>단일 <code>GET /dashboard/student</code> 또는 활동 API + 집계 API 분리 방식으로 설계 가능. 쿼리: <code>startDate</code>, <code>endDate</code>, <code>filter</code>(all|진행중|완료).</p>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>표시 기간 기본값: 예) 오늘 기준 3개월 전 ~ 오늘.</li>
+            <li>진행중: 진행률 &lt; 100 또는 상태가 완료 아님. 완료: 진행률 100 또는 상태 완료.</li>
+            <li>통계는 모두 “기간 내” 데이터만 포함. 시뮬레이션 수/시간은 score &gt; 0 인 이력만 집계.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <table>
+            <tr><th>항목</th><th>산출 방식</th></tr>
+            <tr><td>시뮬레이션 수</td><td>기간 내 시뮬레이션 이력 중 점수 &gt; 0 인 건수</td></tr>
+            <tr><td>시뮬레이션 시간</td><td>기간 내 이력의 소요시간(duration) 합계 → 시간+분 표기</td></tr>
+            <tr><td>클래스 이수</td><td>기간 내 진행률 100% 또는 완료 상태인 클래스 수(중복 제거)</td></tr>
+            <tr><td>참여 시나리오 수</td><td>기간 내 실행한 시나리오 수(중복 제거)</td></tr>
+            <tr><td>Perfect 획득</td><td>기간 내 점수 = 100 인 시뮬레이션 수</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 대시보드 진입 → 활동/이력/통계 API 호출</li>
+            <li><span class="flow-num">2</span> 클래스 카드 클릭 → 마이클래스 상세 또는 클래스 상세로 이동 (기존 클래스/상세 API 연동)</li>
+            <li><span class="flow-num">3</span> 기간·필터 변경 → 동일 API에 기간/필터 파라미터로 재요청</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 2. 마이클래스 목록 ========== -->
+      <article id="my-classes-list" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">마이클래스 목록</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/02-my-classes.png" alt="마이클래스 목록" /><figcaption>마이클래스 목록</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>학생이 “내가 수강 중인 클래스”만 모아서 보는 목록. 전체/참여가능/참여중/이수완료/종료로 필터할 수 있고, 카드를 누르면 해당 마이클래스 상세로 이동한다. 초대코드로 새 클래스에 참여하려면 “초대코드 등록” 버튼을 누른다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/student/my-classes</code></td></tr>
+            <tr><th>사용자 행동</th><td>상태 필터 선택, 카드 클릭 → 마이클래스 상세, 초대코드 등록 버튼 → 모달 오픈</td></tr>
+            <tr><th>표시 데이터</th><td>클래스 카드: 제목, 썸네일, 수강기간, 표시 상태(참여가능/참여중/이수완료/종료), 세션 수, 소요시간, 비공개 여부</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <p><strong>권장</strong>: “내 수강 클래스” 전용 목록 API. (현재는 기관 클래스 전체 + 클라이언트 필터 방식)</p>
+          <table>
+            <tr><th>메서드·경로</th><td><code>GET /class/my-list</code> 또는 <code>GET /enrollment/my-classes</code></td></tr>
+            <tr><th>인증·권한</th><td>필수(Bearer). Student, Master만 호출 가능.</td></tr>
+            <tr><th>쿼리</th><td><code>page</code>, <code>pageSize</code>(기본 6), <code>status</code>(all|eligible|participating|completed|ended)</td></tr>
+            <tr><th>응답</th><td>list(클래스 목록), totalCount. 각 항목: classId, title, description, thumbnailUrl, participationPeriod(startDate, endDate), enrollmentStatus(eligible|participating|completed), curriculumCount, duration, isPrivate</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>목록에는 “수강 등록”이 있는 클래스만 포함 (주문 완료, 초대 수락, 기관·라이선스 등록 등).</li>
+            <li>표시 상태: eligible(참여가능), participating(참여중), completed(이수완료). 수강기간 만료(endDate &lt; 오늘)면 화면에서만 “종료”로 표시하거나, status=ended 요청 시 서버에서 만료 건만 필터.</li>
+            <li>eligible = 등록만 됨·미시작, participating = 1회 이상 세션 참여·이수 미달, completed = 이수 조건 충족.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p><strong>참여중인 클래스 수</strong>: enrollmentStatus = participating 이고, 오늘이 수강기간(startDate ~ endDate) 내인 건수. 목록 API 응답에 <code>summary.activeCount</code> 등으로 포함하거나 별도 요약 API로 제공 가능.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 마이클래스 목록 진입 → 내 수강 클래스 목록 API 호출</li>
+            <li><span class="flow-num">2</span> 초대코드 등록(모달) → 초대 수락 API 호출 → 성공 시 목록에 새 클래스 반영, 마이클래스 상세로 이동</li>
+            <li><span class="flow-num">3</span> 카드 클릭 → 마이클래스 상세(<code>GET /class/{classId}</code> 등)로 이동</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 3. 마이클래스 상세 ========== -->
+      <article id="my-class-detail" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">마이클래스 상세</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/09-my-class-detail.png" alt="마이클래스 상세" /><figcaption>마이클래스 상세</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>수강 중인 클래스 하나의 상세. 수강기간·이수목표·이수율을 보고, “세션 시작”으로 학습을 시작하거나 커리큘럼 항목별로 “세션 참여”·“결과보기”로 이동한다. 이수 완료 시 이수증 다운로드가 가능하다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/student/my-classes/:id</code></td></tr>
+            <tr><th>사용자 행동</th><td>세션 시작, 세션 참여(커리큘럼 항목 클릭), 결과보기, 이수증 다운로드(이수 완료 시)</td></tr>
+            <tr><th>표시 데이터</th><td>수강기간, 이수목표, 이수율(completionRate), 커리큘럼 목록(이름, 소요시간, 유형), 각 항목별 결과보기 가능 여부</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>클래스 상세</strong>: <code>GET /class/{classId}</code> — 제목, 수강기간, 커리큘럼(시나리오/동영상), 이수 조건 등.</li>
+            <li><strong>나의 진행 현황</strong>: 사용자별 해당 클래스의 진행률·이수 상태. (예: <code>GET /enrollment/{classId}/progress</code> 또는 상세 응답에 포함)</li>
+            <li><strong>이수증</strong>: 이수 완료 시 발급·다운로드용 API (정책에 따라 구현).</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>“세션 시작” 시 수강 상태를 participating으로 갱신(백엔드에 반영 시 해당 API 호출).</li>
+            <li>이수율: 완료한 시나리오 수/이수 조건(최소 시나리오 수 또는 전부 완료) 기준. 100% 도달 시 이수 완료(completed), 이수증 다운로드 가능.</li>
+            <li>수강기간 종료 후에는 “종료”로 표시하되, 결과 조회 등은 허용할지 정책 정의 필요.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p><strong>이수율</strong>: 0~100. 완료한 시나리오 수와 이수 조건(최소 개수 또는 전부)으로 계산. 이수 완료 시 이수증 다운로드 버튼 노출.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 마이클래스 목록에서 카드 클릭 → 상세 진입. 클래스 상세 API + (선택) 진행 현황 API 호출</li>
+            <li><span class="flow-num">2</span> 세션 시작 → 진행 상태 갱신 API(또는 세션 참여 시 자동 반영)</li>
+            <li><span class="flow-num">3</span> 세션 참여 → 시뮬레이션/동영상 재생 화면으로 이동 (세션·시나리오 API 연동)</li>
+            <li><span class="flow-num">4</span> 결과보기 → 해당 시나리오 결과 API. 이수 완료 시 이수증 API</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 4. 오픈클래스 목록 ========== -->
+      <article id="open-class-list" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">오픈클래스 목록</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/03-open-class-list.png" alt="오픈클래스 목록" /><figcaption>오픈클래스 목록</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>판매 중인 오픈클래스 목록. 학생이 클래스를 보고 “수강신청” 또는 “장바구니 담기”를 선택해 주문 플로우(장바구니 → 주문확인)로 이어간다. 카드/제목 클릭 시 오픈클래스 상세로 이동한다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/open-class-list</code></td></tr>
+            <tr><th>사용자 행동</th><td>카드/제목 클릭 → 오픈클래스 상세, 수강신청·장바구니 담기 → 장바구니 또는 주문 플로우</td></tr>
+            <tr><th>표시 데이터</th><td>클래스 제목, 썸네일, 기관명, 가격(할인가), 수강기간, 시나리오 수 등</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <p>오픈클래스(판매용 클래스) 목록 조회. 검색·필터·정렬·페이지네이션 파라미터 정의 필요.</p>
+          <ul>
+            <li><strong>목록</strong>: <code>GET /open-class/list</code> 또는 프로덕트/클래스 통합 목록 API. 응답: classId, title, thumbnailUrl, organizationName, price, discountPrice, participationPeriod, scenarioCount 등.</li>
+            <li>쿼리: <code>page</code>, <code>pageSize</code>, <code>search</code>, <code>sort</code> 등 (구현에 따라).</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>판매 중(isForSale/활성)인 오픈클래스만 노출.</li>
+            <li>이미 수강 등록된 클래스는 “참여중” 등으로 표시하고, 수강신청 대신 “마이클래스로 이동” 등으로 유도할 수 있음.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>화면에 통계 카드가 있으면 목록 건수, 가격대 등 필요 시 별도 집계 API 또는 목록 메타로 제공.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 목록 진입 → 오픈클래스(또는 프로덕트) 목록 API 호출</li>
+            <li><span class="flow-num">2</span> 수강신청/장바구니 담기 → 장바구니에 항목 추가(클라이언트 또는 장바구니 API) → 장바구니·주문확인 플로우</li>
+            <li><span class="flow-num">3</span> 카드 클릭 → 오픈클래스 상세 API(<code>GET /open-class/{id}</code> 등) → 상세 화면</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 5. 오픈클래스 상세 ========== -->
+      <article id="open-class-detail" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">오픈클래스 상세</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/03b-open-class-detail-normal.png" alt="오픈클래스 상세(일반)" /><figcaption>오픈클래스 상세(일반)</figcaption></figure>
+          <figure class="screenshot"><img src="../screenshots/student-0212/03c-open-class-detail-participating.png" alt="오픈클래스 상세(참여중)" /><figcaption>오픈클래스 상세(참여중)</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>오픈클래스 하나의 상세. 가격·수강기간·커리큘럼을 보여주고, “수강신청” 또는 “장바구니 담기”로 주문 플로우로 보낸다. 이미 수강 중이면 “마이클래스로 이동” 등으로 표시한다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/open-class-list</code> 등에서 클릭 시 상세 (경로는 구현에 따름)</td></tr>
+            <tr><th>사용자 행동</th><td>수강신청, 장바구니 담기, 마이클래스로 이동(참여 중일 때)</td></tr>
+            <tr><th>표시 데이터</th><td>제목, 설명, 가격, 수강기간, 커리큘럼 요약, 참여 여부</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>상세</strong>: <code>GET /open-class/{id}</code> 또는 프로덕트/클래스 상세 API. 응답에 가격·수강기간·커리큘럼 포함.</li>
+            <li><strong>참여 여부</strong>: 현재 사용자가 해당 클래스에 수강 등록되어 있는지. (목록 API에 플래그 포함 또는 별도 조회)</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>이미 수강 등록된 사용자는 “수강신청” 대신 “마이클래스로 이동” 등으로 안내.</li>
+            <li>장바구니 담기 시 수량·가격 검증(재고/정책은 도메인에 따라 정의).</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음. 필요 시 참여자 수 등을 상세 응답에 포함.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 오픈클래스 상세 API + (선택) 내 수강 여부 조회</li>
+            <li><span class="flow-num">2</span> 수강신청/장바구니 담기 → 장바구니 API 또는 주문 플로우 → 주문확인 → 주문 완료 시 수강 등록 생성 → 마이클래스 목록에 반영</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 6. 장바구니 ========== -->
+      <article id="cart" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">장바구니</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/04-cart.png" alt="장바구니" /><figcaption>장바구니</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>학생이 담은 수강 클래스(또는 상품) 목록. 항목 선택·수량 변경·삭제 후 “주문하기”를 누르면 주문확인 화면으로 넘어간다. “견적 문의”는 선택 항목에 대해 문의를 남기는 플로우이다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/student/cart</code></td></tr>
+            <tr><th>사용자 행동</th><td>선택 체크, 수량 +/- , 삭제, 견적 문의, 주문하기</td></tr>
+            <tr><th>표시 데이터</th><td>항목별: 클래스(제목, 가격 등), 수량, 선택 여부. 선택 합계 금액</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>장바구니 조회</strong>: <code>GET /cart</code> — 현재 사용자의 장바구니 항목(클래스 ID, 수량 등).</li>
+            <li><strong>장바구니 수정</strong>: <code>PUT /cart</code> 또는 항목별 추가/수량 변경/삭제 API.</li>
+            <li><strong>견적 문의</strong>: <code>POST /quote-request</code> 등 — 문의 내용·선택 항목 전송. (현재는 로컬/이메일 등으로 처리될 수 있음)</li>
+          </ul>
+          <p>현재는 localStorage 기반일 수 있음. 백엔드 도입 시 위와 같은 API로 통일.</p>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>선택 합계 = Σ(선택된 항목의 단가 × 수량).</li>
+            <li>주문하기 시 선택 항목이 없으면 진행 불가. 수량은 최소 1.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p><strong>선택 합계 금액</strong>: 선택된 항목의 (단가 × 수량) 합계. 클라이언트 또는 장바구니 API 응답에서 계산.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 장바구니 진입 → 장바구니 조회 API (또는 로컬 장바구니 + 클래스 정보 조회)</li>
+            <li><span class="flow-num">2</span> 주문하기 → 주문확인 화면으로 이동(선택 항목 전달). 주문 확정 API 호출 시 수강 등록 생성 → 마이클래스 목록 반영</li>
+            <li><span class="flow-num">3</span> 견적 문의 → 견적 문의 API(또는 외부 연동)</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 7. 주문확인 ========== -->
+      <article id="order-confirm" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">주문확인</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/05-order-confirm.png" alt="주문확인" /><figcaption>주문확인</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>장바구니에서 넘어온 선택 항목의 주문 요약. 주문자·수강 클래스·수량·단가·합계·결제 수단을 확인하고 “결제/주문 완료”를 누르면 주문이 확정되고, 성공 시 장바구니가 비워지며 마이클래스 등으로 이동한다.</p>
+          <table>
+            <tr><th>경로</th><td>장바구니 → 주문확인 (예: <code>/student/order-confirm</code>)</td></tr>
+            <tr><th>사용자 행동</th><td>결제/주문 완료, 취소/뒤로(장바구니 복귀)</td></tr>
+            <tr><th>표시 데이터</th><td>주문자, 수강 클래스 목록, 수량, 단가, 합계, 총 결제 금액, 결제 수단</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>주문 생성(확정)</strong>: <code>POST /order</code> — 주문자, 항목(클래스 ID, 수량), 결제 수단 등. 응답: orderId, 상태 등.</li>
+            <li>주문 완료 시 백엔드에서 수강(enrollment) 생성 → 마이클래스 목록 API에 새 클래스 포함.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>총 결제 금액 = Σ(단가 × 수량). 주문 확정 전 금액·재고(또는 수강 가능 여부) 검증.</li>
+            <li>주문 성공 시: 수강 등록 생성(eligible), 장바구니에서 해당 항목 제거(또는 전체 비우기).</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p><strong>총 결제 금액</strong>: 주문 항목의 (단가 × 수량) 합계.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 장바구니에서 주문하기 → 주문확인 화면(선택 항목 전달)</li>
+            <li><span class="flow-num">2</span> 결제/주문 완료 → <code>POST /order</code> → 성공 시 수강 등록 생성, 장바구니 비우기, 마이클래스(또는 주문내역)로 이동</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 8. 주문내역 ========== -->
+      <article id="orders" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">주문내역</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/06-orders.png" alt="주문내역" /><figcaption>주문내역</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>학생 본인의 주문 목록. 주문 번호·주문자·금액·상태·일시·주문 항목 요약을 보고, 행 클릭 시 주문 상세로 이동한다. 상태/기간 필터·검색이 있으면 해당 조건으로 목록을 조회한다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/student/orders</code></td></tr>
+            <tr><th>사용자 행동</th><td>목록 조회, 상태/기간 필터, 검색(주문번호·주문자명 등), 행 클릭 → 주문 상세</td></tr>
+            <tr><th>표시 데이터</th><td>주문 ID, 주문자명, 금액, 상태, 생성일시, 주문 항목 요약</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>주문 목록</strong>: <code>GET /order/list</code> — 현재 사용자 주문만. 쿼리: page, pageSize, status, startDate, endDate, search(주문번호·주문자명).</li>
+            <li><strong>주문 상세</strong>: <code>GET /order/{orderId}</code> — 주문 정보·항목·상태.</li>
+          </ul>
+          <p>현재 주문 API는 Mock일 수 있음. 백엔드 구현 시 위 스펙으로 통일.</p>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>본인 주문만 노출. 상태: 예) 주문완료, 취소요청, 취소승인, 환불완료 등 (도메인 정의에 따름).</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>목록 상단에 총 건수·금액 합계 등이 있으면 목록 API 응답에 summary 포함 또는 별도 집계 API.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 주문내역 진입 → 주문 목록 API 호출</li>
+            <li><span class="flow-num">2</span> 행 클릭 → 주문 상세 API → 주문 상세 화면</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 9. 설정 ========== -->
+      <article id="settings" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">설정</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/07-settings.png" alt="설정" /><figcaption>설정</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>학생이 본인 프로필을 보고 수정하는 화면. 이름·프로필 이미지·휴대폰·소속기관·직책·직무를 편집하고, 언어를 선택한다. 이메일 인증·이메일 변경·비밀번호 재설정·계정 삭제 등 계정 관련 링크로 이동한다.</p>
+          <table>
+            <tr><th>경로</th><td><code>/settings</code></td></tr>
+            <tr><th>사용자 행동</th><td>프로필 수정(이름, 이미지, 전화, 기관, 직책, 직무), 언어 선택, 이메일 인증/변경, 비밀번호 재설정, 계정 삭제 요청</td></tr>
+            <tr><th>표시 데이터</th><td>이름, 이메일, 프로필 이미지, 휴대폰, 소속기관, 직책, 직무, 역할·라이선스 배지, 언어 설정</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>프로필 조회</strong>: <code>GET /user/profile</code> — 현재 로그인 사용자의 프로필(이름, 이메일, 프로필 이미지 URL, 전화, 소속기관, 직책, 직무 등).</li>
+            <li><strong>프로필 수정</strong>: <code>PATCH /user/profile</code> — 이름, 프로필 이미지, 전화, 소속기관, 직책, 직무 등 수정. 이미지는 multipart 또는 URL 업로드 방식에 따라 정의.</li>
+            <li><strong>언어 설정</strong>: 사용자별 언어 저장·조회 (예: 프로필에 포함 또는 <code>GET/PUT /user/preferences</code>).</li>
+            <li>이메일 인증·변경·비밀번호 재설정·계정 삭제는 각각 전용 API/플로우 사용.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>본인 프로필만 조회·수정 가능(토큰 기준).</li>
+            <li>이메일 변경·비밀번호 재설정·계정 삭제는 보안 절차(이메일 인증, 확인 단계) 적용.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음. 표시용으로 역할·라이선스 정보만 노출.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 설정 진입 → 프로필 조회 API(<code>GET /user/profile</code>) 또는 AuthContext 사용자 정보</li>
+            <li><span class="flow-num">2</span> 프로필 수정 저장 → <code>PATCH /user/profile</code> → 성공 시 화면·세션 반영</li>
+            <li><span class="flow-num">3</span> 이메일 인증/변경/비밀번호 재설정/계정 삭제 → 해당 전용 페이지·API 플로우</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 10. 초대코드 등록 ========== -->
+      <article id="join-by-code" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">초대코드 등록</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/08-join-by-code-modal.png" alt="초대코드 등록 모달" /><figcaption>초대코드 등록 모달</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p>마이클래스 목록 등에서 “초대코드 등록”을 누르면 뜨는 모달. 6자리 초대코드를 입력하고 등록하면, 해당 클래스에 수강 등록되고 마이클래스 상세로 이동한다.</p>
+          <table>
+            <tr><th>진입</th><td>마이클래스 목록 → 초대코드 등록 버튼</td></tr>
+            <tr><th>사용자 행동</th><td>6자리 코드 입력(한 칸에 1자, 대문자/숫자), 붙여넣기, 등록, 닫기</td></tr>
+            <tr><th>표시 데이터</th><td>코드 입력 필드 6개. (테이블/목록 없음)</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>초대 수락</strong>: <code>POST /invite/accept</code> 또는 <code>POST /class/invite/accept</code> — 요청 본문에 초대코드(6자리). 응답: classId, 클래스 정보 등.</li>
+            <li>성공 시 해당 클래스에 대한 수강 등록(enrollment) 생성 → 내 수강 클래스 목록 API에 반영.</li>
+          </ul>
+          <p>현재 classInviteService는 Mock. 백엔드에 초대 코드 검증·수락 API 구현 필요.</p>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>코드 형식: 6자리(대문자·숫자). 유효하지 않거나 만료·사용 완료 시 에러 메시지.</li>
+            <li>이미 수강 중인 클래스 코드를 다시 입력한 경우: 이미 참여 중임을 안내하거나, 동일 등록으로 처리.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>해당 화면 전용 통계 없음.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 마이클래스 목록 → 초대코드 등록 클릭 → 모달 오픈</li>
+            <li><span class="flow-num">2</span> 코드 입력 후 등록 → 초대 수락 API 호출 → 성공 시 수강 등록 생성, 마이클래스 상세로 이동</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 11. 세션 참여 · 결과보기 ========== -->
+      <article id="session-results" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">세션 참여 · 결과보기</span>
+        </div>
+        <section class="page-section">
+          <h2>1. 스크린샷</h2>
+          <figure class="screenshot"><img src="../screenshots/student-0212/10-class-session.png" alt="세션 참여" /><figcaption>세션 참여</figcaption></figure>
+          <figure class="screenshot"><img src="../screenshots/student-0212/11-simulation-results.png" alt="결과보기" /><figcaption>결과보기</figcaption></figure>
+        </section>
+        <section class="page-section">
+          <h2>2. 화면 요약</h2>
+          <p><strong>세션 참여</strong>: 마이클래스 상세에서 선택한 커리큘럼(시나리오/동영상)을 실행하는 화면. 시뮬레이션을 진행하고 완료 후 결과보기로 넘어간다.</p>
+          <p><strong>결과보기</strong>: 시뮬레이션 결과(점수, 소요시간, 정답/오답 요약 등)를 보고, 재도전하거나 마이클래스 상세로 돌아간다.</p>
+          <table>
+            <tr><th>경로</th><td>세션: <code>/class/:classId/curriculum/:itemId</code> 등 / 결과: <code>/class/:classId/results/:itemId</code> 등</td></tr>
+            <tr><th>사용자 행동</th><td>시뮬레이션 실행, 이전/다음, 완료 → 결과보기, 재도전, 마이클래스 상세로 돌아가기</td></tr>
+            <tr><th>표시 데이터</th><td>결과: 점수, 소요시간, Care Score, Duration, 정답/오답 요약 등</td></tr>
+          </table>
+        </section>
+        <section class="page-section">
+          <h2>3. API 명세</h2>
+          <ul>
+            <li><strong>시나리오 실행</strong>: 시뮬레이션 엔진/재생에 필요한 리소스·세션 API (기존 시나리오·클래스 API 연동).</li>
+            <li><strong>결과 저장·조회</strong>: 시뮬레이션 완료 시 결과 저장(<code>POST /simulation/result</code> 등), 결과보기에서 조회(<code>GET /simulation/result/{id}</code> 등).</li>
+            <li>결과가 이수율·이수 완료 판단에 사용됨 → 마이클래스 상세 진행률 API와 연동.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>4. 비즈니스 규칙</h2>
+          <ul>
+            <li>수강기간 내·수강 등록된 클래스의 시나리오만 실행 가능.</li>
+            <li>결과 저장 시 사용자·클래스·시나리오·점수·소요시간 기록. 이수 조건(최소 점수, 최소 완료 수)과 비교해 이수율·이수 완료 갱신.</li>
+          </ul>
+        </section>
+        <section class="page-section">
+          <h2>5. 통계</h2>
+          <p>결과 화면: 점수, 소요시간, Care Score, Duration 등 시뮬레이션 결과 데이터. 대시보드 통계(시뮬레이션 수, 시간, Perfect 획득 등)의 입력 데이터가 됨.</p>
+        </section>
+        <section class="page-section">
+          <h2>6. 연관 API · 플로우</h2>
+          <ul class="flow-list">
+            <li><span class="flow-num">1</span> 마이클래스 상세 → 세션 참여 클릭 → 세션/시나리오 API로 진입</li>
+            <li><span class="flow-num">2</span> 시뮬레이션 완료 → 결과 저장 API → 결과보기 화면(결과 조회 API)</li>
+            <li><span class="flow-num">3</span> 결과보기에서 재도전 시 다시 세션 참여. “돌아가기” 시 마이클래스 상세(진행률 갱신 반영)</li>
+          </ul>
+        </section>
+      </article>
+
+      <!-- ========== 워크플로우 ========== -->
+      <article id="workflow" class="page-article">
+        <div class="page-header">
+          <span class="role">Student</span><span class="sep">|</span><span class="page-name">워크플로우</span>
+        </div>
+        <section class="page-section">
+          <h2>수강 신청</h2>
+          <div class="mermaid">flowchart TB
+    A[오픈클래스 목록] --> B[카드 클릭]
+    B --> C[오픈클래스 상세]
+    C --> D[수강신청 또는 장바구니 담기]
+    D --> E[장바구니]
+    E --> F[주문하기]
+    F --> G[주문확인]
+    G --> H[결제/주문 완료]
+    H --> I[마이클래스 반영]</div>
+        </section>
+        <section class="page-section">
+          <h2>초대코드로 참여</h2>
+          <div class="mermaid">flowchart TB
+    A[마이클래스 목록] --> B[초대코드 등록 버튼]
+    B --> C[모달 오픈]
+    C --> D[6자리 코드 입력]
+    D --> E[등록]
+    E --> F[초대 수락 API]
+    F --> G[마이클래스 상세]</div>
+        </section>
+        <section class="page-section">
+          <h2>학습 진행</h2>
+          <div class="mermaid">flowchart TB
+    A[마이클래스 상세] --> B[세션 시작]
+    B --> C[커리큘럼 항목 선택]
+    C --> D[세션 참여 시뮬레이션]
+    D --> E[완료]
+    E --> F[결과보기]
+    F --> G[재도전 또는 마이클래스 상세 복귀]</div>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      var links = document.querySelectorAll('.sidebar nav .nav-link');
+      var articles = document.querySelectorAll('.main .page-article');
+      var workflowRendered = false;
+      function setActive() {
+        var hash = location.hash || '#workflow';
+        var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+        links.forEach(function(a) {
+          var href = a.getAttribute('href') || '';
+          a.classList.toggle('active', href === '#' + id || href === hash);
+        });
+        articles.forEach(function(art) {
+          art.style.display = art.id === id ? (art.id === 'workflow' ? 'grid' : 'block') : 'none';
+        });
+        if (id === 'workflow' && typeof mermaid !== 'undefined' && !workflowRendered) {
+          workflowRendered = true;
+          mermaid.run({ querySelector: '#workflow .mermaid', suppressErrors: true });
+        }
+      }
+      window.addEventListener('hashchange', setActive);
+      window.addEventListener('load', function() {
+        if (!location.hash) location.hash = 'workflow';
+        setActive();
+      });
+    })();
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({ startOnLoad: false, flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, theme: 'neutral' });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>워크플로우 흐름도 · Master</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 24px; background: #f9fafb; color: #1f2937; }
+    .container { max-width: 960px; margin: 0 auto; }
+    .nav-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; font-size: 0.85rem; }
+    .nav-top a { color: #2563eb; text-decoration: none; }
+    .nav-top a:hover { text-decoration: underline; }
+    .nav-top span.current { color: #374151; font-weight: 600; }
+    .nav-top .sep { color: #d1d5db; }
+    h1 { font-size: 1.35rem; margin-bottom: 8px; color: #111; }
+    .role-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #e5e7eb; }
+    .role-section h2 { font-size: 1.1rem; margin: 0 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #2563eb; color: #111; }
+    .flow-caption { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 24px 0 8px 0; }
+    .flow-caption:first-of-type { margin-top: 0; }
+    .flow-note { font-size: 0.8rem; color: #6b7280; margin: 4px 0 12px 0; }
+    .mermaid { margin: 16px 0; }
+    .mermaid svg { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-top">
+      <a href="backend-workflow-student.html">Student</a>
+      <span class="sep">|</span>
+      <a href="backend-workflow-flows.html">워크플로우</a>
+      <span class="sep">|</span>
+      <a href="backend-workflow-flows-student.html">Student</a>
+      <span class="current">Master</span>
+      <a href="backend-workflow-flows-admin.html">Admin</a>
+    </div>
+    <h1>워크플로우 흐름도 · Master</h1>
+    <p style="color:#6b7280; font-size:0.95rem; margin-bottom:24px;">Master 사용자 워크플로우입니다.</p>
+
+    <section class="role-section">
+      <h2>Master</h2>
+      <p class="flow-caption">오픈클래스 개설</p>
+      <p class="flow-note">※ 권한: Admin, 제휴기관 Master만 가능</p>
+      <div class="mermaid">
+flowchart TB
+    A[클래스 관리] --> B[오픈클래스 생성]
+    B --> C[프로덕트 선택]
+    C --> D[수강기간 가격 할인]
+    D --> E[커리큘럼 편집]
+    E --> F[저장]
+      </div>
+      <p class="flow-caption">기관클래스 개설</p>
+      <div class="mermaid">
+flowchart TB
+    A[클래스 관리] --> B[기관클래스 생성]
+    B --> C[제목 비공개 이수조건]
+    C --> D[시나리오 커리큘럼 설정]
+    D --> E[수강기간 설정]
+    E --> F[저장]
+      </div>
+      <p class="flow-caption">마이클래스 학습</p>
+      <div class="mermaid">
+flowchart TB
+    A[마이클래스 목록] --> B[마이클래스 상세]
+    B --> C[세션 참여]
+    C --> D[결과보기]
+      </div>
+    </section>
+  </div>
+  <script>
+    mermaid.initialize({ startOnLoad: true, flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, theme: 'neutral' });
+  </script>
+</body>
+</html>

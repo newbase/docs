@@ -1,0 +1,762 @@
+{
+  "description": "Figma에서 1. Student, 2. Master, 3. Admin 프레임을 만들고, 각 프레임 안에 스크린샷·기능·데이터·워크플로우 섹션을 배치할 때 참고하세요.",
+  "frames": [
+    {
+      "name": "1. Student",
+      "sections": [
+        {
+          "name": "스크린샷",
+          "type": "images",
+          "items": [
+            {
+              "path": "screenshots/student-0212/01-dashboard.png",
+              "name": "대시보드"
+            },
+            {
+              "path": "screenshots/student-0212/02-my-classes.png",
+              "name": "마이클래스 목록"
+            },
+            {
+              "path": "screenshots/student-0212/03-open-class-list.png",
+              "name": "오픈클래스 목록"
+            },
+            {
+              "path": "screenshots/student-0212/03b-open-class-detail-normal.png",
+              "name": "오픈클래스 상세(일반)"
+            },
+            {
+              "path": "screenshots/student-0212/03c-open-class-detail-participating.png",
+              "name": "오픈클래스 상세(참여중)"
+            },
+            {
+              "path": "screenshots/student-0212/04-cart.png",
+              "name": "장바구니"
+            },
+            {
+              "path": "screenshots/student-0212/05-order-confirm.png",
+              "name": "주문확인"
+            },
+            {
+              "path": "screenshots/student-0212/06-orders.png",
+              "name": "주문내역"
+            },
+            {
+              "path": "screenshots/student-0212/07-settings.png",
+              "name": "설정"
+            },
+            {
+              "path": "screenshots/student-0212/08-join-by-code-modal.png",
+              "name": "초대코드 등록 모달"
+            },
+            {
+              "path": "screenshots/student-0212/09-my-class-detail.png",
+              "name": "마이클래스 상세"
+            },
+            {
+              "path": "screenshots/student-0212/10-class-session.png",
+              "name": "세션 참여"
+            },
+            {
+              "path": "screenshots/student-0212/11-simulation-results.png",
+              "name": "결과보기"
+            }
+          ]
+        },
+        {
+          "name": "기능 정의",
+          "type": "text",
+          "items": [
+            {
+              "name": "대시보드",
+              "path": "/dashboard",
+              "component": "StudentDashboard",
+              "description": "학생 대시보드"
+            },
+            {
+              "name": "마이클래스",
+              "path": "/student/my-classes",
+              "component": "MyClassList",
+              "description": "참여 중인 클래스 목록"
+            },
+            {
+              "name": "마이클래스 상세",
+              "path": "/student/my-classes/:id",
+              "component": "MyClassDetail",
+              "description": "클래스 상세 및 세션 참여"
+            },
+            {
+              "name": "오픈 클래스",
+              "path": "/open-class-list",
+              "component": "OpenClassList",
+              "description": "오픈클래스 목록/상세"
+            },
+            {
+              "name": "장바구니",
+              "path": "/student/cart",
+              "component": "Cart",
+              "description": "장바구니"
+            },
+            {
+              "name": "주문내역",
+              "path": "/student/orders",
+              "component": "Orders",
+              "description": "주문 목록"
+            }
+          ]
+        },
+        {
+          "name": "데이터 정의",
+          "type": "text",
+          "items": [
+            {
+              "entity": "ClassItem",
+              "fields": [
+                "id",
+                "type",
+                "title",
+                "subtitle",
+                "description",
+                "curriculum",
+                "participationPeriod",
+                "completionRequirements"
+              ],
+              "source": "data/classes.ts"
+            },
+            {
+              "entity": "CurriculumItem",
+              "fields": [
+                "id",
+                "code",
+                "name",
+                "duration",
+                "platform",
+                "type"
+              ],
+              "source": "data/classes.ts"
+            },
+            {
+              "entity": "Order",
+              "fields": [
+                "id",
+                "ordererName",
+                "items",
+                "amount",
+                "status"
+              ],
+              "source": "pages/order"
+            }
+          ]
+        },
+        {
+          "name": "사용자 워크플로우",
+          "type": "text",
+          "items": [
+            {
+              "name": "수강 신청",
+              "steps": [
+                "오픈클래스 목록",
+                "오픈클래스 상세",
+                "수강신청/장바구니",
+                "주문확인"
+              ]
+            },
+            {
+              "name": "초대코드로 참여",
+              "steps": [
+                "마이클래스 목록",
+                "초대코드 등록 모달",
+                "코드 입력 및 등록",
+                "마이클래스 상세"
+              ]
+            },
+            {
+              "name": "학습 진행",
+              "steps": [
+                "마이클래스 상세",
+                "세션 참여",
+                "시뮬레이션 수행",
+                "결과보기"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Master",
+      "sections": [
+        {
+          "name": "스크린샷",
+          "type": "images",
+          "items": [
+            {
+              "path": "screenshots/master-all/01-dashboard.png",
+              "name": "대시보드"
+            },
+            {
+              "path": "screenshots/master-all/02-my-classes.png",
+              "name": "마이클래스 목록"
+            },
+            {
+              "path": "screenshots/master-all/03-class-management.png",
+              "name": "클래스 관리"
+            },
+            {
+              "path": "screenshots/master-all/04-product-management.png",
+              "name": "프로덕트 관리"
+            },
+            {
+              "path": "screenshots/master-all/05-product-create.png",
+              "name": "프로덕트 생성"
+            },
+            {
+              "path": "screenshots/master-all/06-open-class-create.png",
+              "name": "오픈클래스 생성"
+            },
+            {
+              "path": "screenshots/master-all/07-class-create.png",
+              "name": "기관클래스 생성"
+            },
+            {
+              "path": "screenshots/master-all/08-scenarios.png",
+              "name": "시나리오"
+            },
+            {
+              "path": "screenshots/master-all/09-organization.png",
+              "name": "관리자 설정(기관)"
+            },
+            {
+              "path": "screenshots/master-all/11-scenario-detail.png",
+              "name": "시나리오 상세"
+            },
+            {
+              "path": "screenshots/master-all/12-product-detail.png",
+              "name": "프로덕트 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/30-마이클래스-목록.png",
+              "name": "마이클래스 목록(master)"
+            },
+            {
+              "path": "screenshots/admin_20250213/31-마이클래스-초대코드등록-모달.png",
+              "name": "마이클래스 초대코드 등록 모달"
+            },
+            {
+              "path": "screenshots/admin_20250213/32-마이클래스-상세.png",
+              "name": "마이클래스 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/33-세션참여.png",
+              "name": "세션참여"
+            },
+            {
+              "path": "screenshots/admin_20250213/34-결과보기.png",
+              "name": "결과보기"
+            }
+          ]
+        },
+        {
+          "name": "기능 정의",
+          "type": "text",
+          "items": [
+            {
+              "name": "대시보드",
+              "path": "/master/dashboard",
+              "component": "MasterDashboard",
+              "description": "마스터 대시보드"
+            },
+            {
+              "name": "마이클래스",
+              "path": "/master/my-classes",
+              "component": "MyClassList",
+              "description": "참여 클래스 목록"
+            },
+            {
+              "name": "마이클래스 상세",
+              "path": "/master/my-classes/:id",
+              "component": "MyClassDetail",
+              "description": "클래스 상세"
+            },
+            {
+              "name": "오픈클래스",
+              "path": "/master/open-class-list",
+              "component": "OpenClassList",
+              "description": "오픈클래스 목록"
+            },
+            {
+              "name": "오픈클래스 생성",
+              "path": "/master/open-class/create",
+              "component": "OpenClassCreate",
+              "description": "오픈클래스 생성"
+            },
+            {
+              "name": "오픈클래스 상세",
+              "path": "/master/open-class/:id",
+              "component": "OpenClassDetail",
+              "description": "오픈클래스 상세/편집"
+            },
+            {
+              "name": "클래스 관리",
+              "path": "/master/class-management",
+              "component": "MyClassManagement",
+              "description": "클래스 관리 목록"
+            },
+            {
+              "name": "기관클래스 생성",
+              "path": "/master/class/create",
+              "component": "MyClassCreate",
+              "description": "기관클래스 생성"
+            },
+            {
+              "name": "기관클래스 편집",
+              "path": "/master/class/edit/:id",
+              "component": "MyClassEdit",
+              "description": "기관클래스 편집"
+            },
+            {
+              "name": "프로덕트 관리",
+              "path": "/master/product-management",
+              "component": "ProductManagement",
+              "description": "프로덕트 목록"
+            },
+            {
+              "name": "프로덕트 생성",
+              "path": "/master/product/create",
+              "component": "ProductCreate",
+              "description": "프로덕트 생성"
+            },
+            {
+              "name": "프로덕트 편집",
+              "path": "/master/product/edit/:id",
+              "component": "ProductEdit",
+              "description": "프로덕트 편집"
+            },
+            {
+              "name": "시나리오",
+              "path": "/master/scenarios",
+              "component": "MasterScenarioManagement",
+              "description": "시나리오 관리"
+            },
+            {
+              "name": "관리자 설정",
+              "path": "/master/organization",
+              "component": "MyOrganization",
+              "description": "기관(MyOrganization)"
+            },
+            {
+              "name": "주문관리",
+              "path": "/master/order-management",
+              "component": "OrderManagement",
+              "description": "주문 목록"
+            }
+          ]
+        },
+        {
+          "name": "데이터 정의",
+          "type": "text",
+          "items": [
+            {
+              "entity": "ClassItem",
+              "fields": [
+                "id",
+                "type",
+                "title",
+                "curriculum",
+                "participationPeriod",
+                "organizationId",
+                "saleStatus"
+              ],
+              "source": "data/classes.ts"
+            },
+            {
+              "entity": "Organization",
+              "fields": [
+                "id",
+                "name",
+                "licenseType",
+                "licenseCount",
+                "userCount"
+              ],
+              "source": "types/admin, data/organizations"
+            },
+            {
+              "entity": "OrderRow",
+              "fields": [
+                "id",
+                "ordererName",
+                "type",
+                "amount",
+                "status",
+                "salesChannel"
+              ],
+              "source": "pages/order/OrderManagement"
+            }
+          ]
+        },
+        {
+          "name": "사용자 워크플로우",
+          "type": "text",
+          "items": [
+            {
+              "name": "오픈클래스 개설",
+              "steps": [
+                "클래스 관리",
+                "오픈클래스 생성",
+                "정보 입력",
+                "저장"
+              ]
+            },
+            {
+              "name": "기관클래스 개설",
+              "steps": [
+                "클래스 관리",
+                "기관클래스 생성",
+                "커리큘럼 설정",
+                "저장"
+              ]
+            },
+            {
+              "name": "마이클래스 학습",
+              "steps": [
+                "마이클래스 목록",
+                "마이클래스 상세",
+                "세션 참여",
+                "결과보기"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Admin",
+      "sections": [
+        {
+          "name": "스크린샷",
+          "type": "images",
+          "items": [
+            {
+              "path": "screenshots/admin_20250213/01-dashboard.png",
+              "name": "대시보드"
+            },
+            {
+              "path": "screenshots/admin_20250213/02-기관고객관리.png",
+              "name": "기관고객 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/03-기관고객-상세.png",
+              "name": "기관고객 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/04-클래스관리.png",
+              "name": "클래스 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/05-오픈클래스-생성.png",
+              "name": "오픈클래스 생성"
+            },
+            {
+              "path": "screenshots/admin_20250213/06-기관클래스-생성.png",
+              "name": "기관클래스 생성"
+            },
+            {
+              "path": "screenshots/admin_20250213/07-오픈클래스-상세.png",
+              "name": "오픈클래스 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/08-오픈클래스-편집.png",
+              "name": "오픈클래스 편집"
+            },
+            {
+              "path": "screenshots/admin_20250213/09-기관클래스-상세.png",
+              "name": "기관클래스 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/10-기관클래스-편집.png",
+              "name": "기관클래스 편집"
+            },
+            {
+              "path": "screenshots/admin_20250213/11-프로덕트관리.png",
+              "name": "프로덕트 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/12-프로덕트-생성.png",
+              "name": "프로덕트 생성"
+            },
+            {
+              "path": "screenshots/admin_20250213/13-프로덕트-상세.png",
+              "name": "프로덕트 상세"
+            },
+            {
+              "path": "screenshots/admin_20250213/14-프로덕트-편집.png",
+              "name": "프로덕트 편집"
+            },
+            {
+              "path": "screenshots/admin_20250213/15-사용자관리.png",
+              "name": "사용자 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/17-시나리오관리.png",
+              "name": "시나리오 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/19-주문관리.png",
+              "name": "주문 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/20-주문등록.png",
+              "name": "주문 등록"
+            },
+            {
+              "path": "screenshots/admin_20250213/20a-주문생성-구독-품목추가.png",
+              "name": "주문생성 - 구독 품목추가"
+            },
+            {
+              "path": "screenshots/admin_20250213/20b-주문생성-장비물품-품목추가.png",
+              "name": "주문생성 - 장비물품 품목추가"
+            },
+            {
+              "path": "screenshots/admin_20250213/20c-주문생성-오픈클래스-품목추가.png",
+              "name": "주문생성 - 오픈클래스 품목추가"
+            },
+            {
+              "path": "screenshots/admin_20250213/20d-주문생성-커스텀서비스-품목추가.png",
+              "name": "주문생성 - 커스텀서비스 품목추가"
+            },
+            {
+              "path": "screenshots/admin_20250213/20e-주문상세조회.png",
+              "name": "주문 상세조회"
+            },
+            {
+              "path": "screenshots/admin_20250213/21-에셋-이벤트관리.png",
+              "name": "에셋 - 이벤트 관리"
+            },
+            {
+              "path": "screenshots/admin_20250213/22-에셋-이벤트생성.png",
+              "name": "에셋 - 이벤트 생성"
+            },
+            {
+              "path": "screenshots/admin_20250213/23-에셋-증상.png",
+              "name": "에셋 - 증상"
+            },
+            {
+              "path": "screenshots/admin_20250213/24-에셋-태스크.png",
+              "name": "에셋 - 태스크"
+            },
+            {
+              "path": "screenshots/admin_20250213/25-에셋-액션.png",
+              "name": "에셋 - 액션"
+            },
+            {
+              "path": "screenshots/admin_20250213/26-에셋-대화.png",
+              "name": "에셋 - 대화"
+            },
+            {
+              "path": "screenshots/admin_20250213/27-에셋-아이템.png",
+              "name": "에셋 - 아이템"
+            },
+            {
+              "path": "screenshots/admin_20250213/29-설정.png",
+              "name": "설정"
+            }
+          ]
+        },
+        {
+          "name": "기능 정의",
+          "type": "text",
+          "items": [
+            {
+              "name": "대시보드",
+              "path": "/admin/dashboard",
+              "component": "AdminDashboard",
+              "description": "관리자 대시보드"
+            },
+            {
+              "name": "기관 관리",
+              "path": "/admin/organizations",
+              "component": "OrganizationList",
+              "description": "기관 목록"
+            },
+            {
+              "name": "기관 상세",
+              "path": "/admin/organizations/:id",
+              "component": "OrganizationDetail",
+              "description": "기관 상세/라이선스"
+            },
+            {
+              "name": "사용자 관리",
+              "path": "/admin/users",
+              "component": "UserManagement",
+              "description": "사용자 목록/일괄등록"
+            },
+            {
+              "name": "주문 관리",
+              "path": "/admin/order-management",
+              "component": "OrderManagement",
+              "description": "주문 목록"
+            },
+            {
+              "name": "주문 상세",
+              "path": "/admin/order-management/:orderId",
+              "component": "OrderDetail",
+              "description": "주문 상세"
+            },
+            {
+              "name": "주문 등록",
+              "path": "/admin/order-management/create",
+              "component": "OrderCreate",
+              "description": "주문 생성(구독/장비/오픈클래스/커스텀)"
+            },
+            {
+              "name": "프로덕트 관리",
+              "path": "/admin/product-management",
+              "component": "ProductManagement",
+              "description": "프로덕트 목록"
+            },
+            {
+              "name": "프로덕트 생성",
+              "path": "/admin/product/create",
+              "component": "ProductCreate",
+              "description": "프로덕트 생성"
+            },
+            {
+              "name": "프로덕트 상세/편집",
+              "path": "/admin/product/detail/:id",
+              "component": "ProductDetail",
+              "description": "프로덕트 상세/편집"
+            },
+            {
+              "name": "클래스 관리",
+              "path": "/admin/class-management",
+              "component": "ClassManagement",
+              "description": "오픈/기관 클래스 목록"
+            },
+            {
+              "name": "오픈클래스 생성/편집",
+              "path": "/admin/open-class/create",
+              "component": "OpenClassCreate",
+              "description": "오픈클래스 생성·편집"
+            },
+            {
+              "name": "기관클래스 생성/편집",
+              "path": "/admin/class/create",
+              "component": "MyClassCreate",
+              "description": "기관클래스 생성·편집"
+            },
+            {
+              "name": "시나리오",
+              "path": "/admin/scenarios",
+              "component": "AdminScenarioManagement",
+              "description": "시나리오 관리"
+            },
+            {
+              "name": "에셋(이벤트/증상/태스크/액션/대화/아이템)",
+              "path": "/admin/assets/*",
+              "component": "EventManagement 등",
+              "description": "에셋 관리"
+            },
+            {
+              "name": "설정",
+              "path": "/settings",
+              "component": "Settings",
+              "description": "설정"
+            }
+          ]
+        },
+        {
+          "name": "데이터 정의",
+          "type": "text",
+          "items": [
+            {
+              "entity": "Organization",
+              "fields": [
+                "id",
+                "name",
+                "country",
+                "type",
+                "status",
+                "licenseType",
+                "licenseCount",
+                "userCount"
+              ],
+              "source": "types/admin, data/organizations"
+            },
+            {
+              "entity": "OrderRow",
+              "fields": [
+                "id",
+                "ordererName",
+                "type",
+                "currency",
+                "amount",
+                "cost",
+                "expectedProfit",
+                "status",
+                "salesChannel"
+              ],
+              "source": "pages/order/OrderManagement"
+            },
+            {
+              "entity": "OrderDetailItem",
+              "fields": [
+                "id",
+                "productName",
+                "optionName",
+                "quantity",
+                "unitPrice",
+                "amount",
+                "period",
+                "periodUnit"
+              ],
+              "source": "pages/order/OrderDetail"
+            },
+            {
+              "entity": "ClassItem",
+              "fields": [
+                "id",
+                "title",
+                "curriculum",
+                "organizationId",
+                "saleStatus",
+                "price"
+              ],
+              "source": "data/classes.ts"
+            }
+          ]
+        },
+        {
+          "name": "사용자 워크플로우",
+          "type": "text",
+          "items": [
+            {
+              "name": "기관·주문 관리",
+              "steps": [
+                "기관 관리",
+                "기관 상세",
+                "주문 관리",
+                "주문 등록/상세"
+              ]
+            },
+            {
+              "name": "주문 생성(유형별)",
+              "steps": [
+                "주문 등록",
+                "주문유형 선택(구독/장비/오픈클래스/커스텀)",
+                "품목 추가",
+                "저장"
+              ]
+            },
+            {
+              "name": "클래스·프로덕트 관리",
+              "steps": [
+                "클래스 관리",
+                "오픈/기관클래스 생성·상세·편집",
+                "프로덕트 관리·생성·편집"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

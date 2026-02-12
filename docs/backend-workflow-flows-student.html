@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>워크플로우 흐름도 · Student</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 24px; background: #f9fafb; color: #1f2937; }
+    .container { max-width: 960px; margin: 0 auto; }
+    .nav-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; font-size: 0.85rem; }
+    .nav-top a { color: #2563eb; text-decoration: none; }
+    .nav-top a:hover { text-decoration: underline; }
+    .nav-top span.current { color: #374151; font-weight: 600; }
+    .nav-top .sep { color: #d1d5db; }
+    h1 { font-size: 1.35rem; margin-bottom: 8px; color: #111; }
+    .role-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #e5e7eb; }
+    .role-section h2 { font-size: 1.1rem; margin: 0 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #2563eb; color: #111; }
+    .flow-caption { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 24px 0 8px 0; }
+    .flow-caption:first-of-type { margin-top: 0; }
+    .mermaid { margin: 16px 0; }
+    .mermaid svg { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-top">
+      <a href="backend-workflow-student.html">Student</a>
+      <span class="sep">|</span>
+      <a href="backend-workflow-flows.html">워크플로우</a>
+      <span class="sep">|</span>
+      <span class="current">Student</span>
+      <a href="backend-workflow-flows-master.html">Master</a>
+      <a href="backend-workflow-flows-admin.html">Admin</a>
+    </div>
+    <h1>워크플로우 흐름도 · Student</h1>
+    <p style="color:#6b7280; font-size:0.95rem; margin-bottom:24px;">Student 사용자 워크플로우입니다.</p>
+
+    <section class="role-section">
+      <h2>Student</h2>
+      <p class="flow-caption">수강 신청</p>
+      <div class="mermaid">
+flowchart TB
+    A[오픈클래스 목록] --> B[카드 클릭]
+    B --> C[오픈클래스 상세]
+    C --> D[수강신청 또는 장바구니 담기]
+    D --> E[장바구니]
+    E --> F[주문하기]
+    F --> G[주문확인]
+    G --> H[결제/주문 완료]
+    H --> I[마이클래스 반영]
+      </div>
+      <p class="flow-caption">초대코드로 참여</p>
+      <div class="mermaid">
+flowchart TB
+    A[마이클래스 목록] --> B[초대코드 등록 버튼]
+    B --> C[모달 오픈]
+    C --> D[6자리 코드 입력]
+    D --> E[등록]
+    E --> F[초대 수락 API]
+    F --> G[마이클래스 상세]
+      </div>
+      <p class="flow-caption">학습 진행</p>
+      <div class="mermaid">
+flowchart TB
+    A[마이클래스 상세] --> B[세션 시작]
+    B --> C[커리큘럼 항목 선택]
+    C --> D[세션 참여 시뮬레이션]
+    D --> E[완료]
+    E --> F[결과보기]
+    F --> G[재도전 또는 마이클래스 상세 복귀]
+      </div>
+    </section>
+  </div>
+  <script>
+    mermaid.initialize({ startOnLoad: true, flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, theme: 'neutral' });
+  </script>
+</body>
+</html>

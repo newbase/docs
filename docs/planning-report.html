@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>기획서 스펙 (Student → Master → Admin)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f5f5f5; }
+    h1 { margin-top: 0; }
+    .role { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .role h2 { margin-top: 0; border-bottom: 2px solid #2563eb; padding-bottom: 8px; }
+    .section { margin-top: 24px; }
+    .section h3 { color: #374151; font-size: 1rem; }
+    .screenshots { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .screenshots figure { margin: 0; }
+    .screenshots img { max-width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 4px; }
+    .screenshots figcaption { font-size: 0.875rem; color: #6b7280; margin-top: 4px; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
+    th { background: #f9fafb; }
+    .workflow { list-style: none; padding: 0; }
+    .workflow li { padding: 4px 0; }
+    .workflow strong { display: inline-block; min-width: 120px; }
+    .missing { color: #9ca3af; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>기획서 스펙 (Student → Master → Admin)</h1>
+  <p>아래 내용을 Figma에 수동 반영하거나, <a href="https://figma.com/new">figma.com/new</a>에서 새 파일을 만든 뒤 스크린샷을 드래그하여 배치하세요.</p>
+  <p>스크린샷별 <strong>액션, 필터, 검색, 테이블 데이터, 통계 산출식</strong> 상세 정의는 <a href="planning-spec-detail.md">planning-spec-detail.md</a>를 참고하세요.</p>
+  <div class="role">
+    <h2>1. Student</h2>
+    <div class="section">
+      <h3>스크린샷</h3>
+      <div class="screenshots">
+        <figure><img src="../screenshots/student-0212/01-dashboard.png" alt="대시보드" loading="lazy" /><figcaption>대시보드</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/02-my-classes.png" alt="마이클래스 목록" loading="lazy" /><figcaption>마이클래스 목록</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/03-open-class-list.png" alt="오픈클래스 목록" loading="lazy" /><figcaption>오픈클래스 목록</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/03b-open-class-detail-normal.png" alt="오픈클래스 상세(일반)" loading="lazy" /><figcaption>오픈클래스 상세(일반)</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/03c-open-class-detail-participating.png" alt="오픈클래스 상세(참여중)" loading="lazy" /><figcaption>오픈클래스 상세(참여중)</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/04-cart.png" alt="장바구니" loading="lazy" /><figcaption>장바구니</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/05-order-confirm.png" alt="주문확인" loading="lazy" /><figcaption>주문확인</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/06-orders.png" alt="주문내역" loading="lazy" /><figcaption>주문내역</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/07-settings.png" alt="설정" loading="lazy" /><figcaption>설정</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/08-join-by-code-modal.png" alt="초대코드 등록 모달" loading="lazy" /><figcaption>초대코드 등록 모달</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/09-my-class-detail.png" alt="마이클래스 상세" loading="lazy" /><figcaption>마이클래스 상세</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/10-class-session.png" alt="세션 참여" loading="lazy" /><figcaption>세션 참여</figcaption></figure>
+        <figure><img src="../screenshots/student-0212/11-simulation-results.png" alt="결과보기" loading="lazy" /><figcaption>결과보기</figcaption></figure>
+      </div>
+    </div>
+    <div class="section">
+      <h3>기능 정의</h3>
+      <table>
+        <thead><tr><th>기능명</th><th>경로</th><th>컴포넌트</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>대시보드</td><td><code>/dashboard</code></td><td>StudentDashboard</td><td>학생 대시보드</td></tr>
+          <tr><td>마이클래스</td><td><code>/student/my-classes</code></td><td>MyClassList</td><td>참여 중인 클래스 목록</td></tr>
+          <tr><td>마이클래스 상세</td><td><code>/student/my-classes/:id</code></td><td>MyClassDetail</td><td>클래스 상세 및 세션 참여</td></tr>
+          <tr><td>오픈 클래스</td><td><code>/open-class-list</code></td><td>OpenClassList</td><td>오픈클래스 목록/상세</td></tr>
+          <tr><td>장바구니</td><td><code>/student/cart</code></td><td>Cart</td><td>장바구니</td></tr>
+          <tr><td>주문내역</td><td><code>/student/orders</code></td><td>Orders</td><td>주문 목록</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>데이터 정의</h3>
+      <table>
+        <thead><tr><th>엔티티</th><th>필드</th><th>출처</th></tr></thead>
+        <tbody>
+          <tr><td>ClassItem</td><td>id, type, title, subtitle, description, curriculum, participationPeriod, completionRequirements</td><td>data/classes.ts</td></tr>
+          <tr><td>CurriculumItem</td><td>id, code, name, duration, platform, type</td><td>data/classes.ts</td></tr>
+          <tr><td>Order</td><td>id, ordererName, items, amount, status</td><td>pages/order</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>사용자 워크플로우</h3>
+      <ul class="workflow">
+        <li><strong>수강 신청</strong> 오픈클래스 목록 → 오픈클래스 상세 → 수강신청/장바구니 → 주문확인</li>
+        <li><strong>초대코드로 참여</strong> 마이클래스 목록 → 초대코드 등록 모달 → 코드 입력 및 등록 → 마이클래스 상세</li>
+        <li><strong>학습 진행</strong> 마이클래스 상세 → 세션 참여 → 시뮬레이션 수행 → 결과보기</li>
+      </ul>
+    </div>
+  </div>
+  <div class="role">
+    <h2>2. Master</h2>
+    <div class="section">
+      <h3>스크린샷</h3>
+      <div class="screenshots">
+        <figure><img src="../screenshots/master-all/01-dashboard.png" alt="대시보드" loading="lazy" /><figcaption>대시보드</figcaption></figure>
+        <figure><img src="../screenshots/master-all/02-my-classes.png" alt="마이클래스 목록" loading="lazy" /><figcaption>마이클래스 목록</figcaption></figure>
+        <figure><img src="../screenshots/master-all/03-class-management.png" alt="클래스 관리" loading="lazy" /><figcaption>클래스 관리</figcaption></figure>
+        <figure><img src="../screenshots/master-all/04-product-management.png" alt="프로덕트 관리" loading="lazy" /><figcaption>프로덕트 관리</figcaption></figure>
+        <figure><img src="../screenshots/master-all/05-product-create.png" alt="프로덕트 생성" loading="lazy" /><figcaption>프로덕트 생성</figcaption></figure>
+        <figure><img src="../screenshots/master-all/06-open-class-create.png" alt="오픈클래스 생성" loading="lazy" /><figcaption>오픈클래스 생성</figcaption></figure>
+        <figure><img src="../screenshots/master-all/07-class-create.png" alt="기관클래스 생성" loading="lazy" /><figcaption>기관클래스 생성</figcaption></figure>
+        <figure><img src="../screenshots/master-all/08-scenarios.png" alt="시나리오" loading="lazy" /><figcaption>시나리오</figcaption></figure>
+        <figure><img src="../screenshots/master-all/09-organization.png" alt="관리자 설정(기관)" loading="lazy" /><figcaption>관리자 설정(기관)</figcaption></figure>
+        <figure><img src="../screenshots/master-all/11-scenario-detail.png" alt="시나리오 상세" loading="lazy" /><figcaption>시나리오 상세</figcaption></figure>
+        <figure><img src="../screenshots/master-all/12-product-detail.png" alt="프로덕트 상세" loading="lazy" /><figcaption>프로덕트 상세</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/30-마이클래스-목록.png" alt="마이클래스 목록(master)" loading="lazy" /><figcaption>마이클래스 목록(master)</figcaption></figure>
+        <figure><figcaption class="missing">마이클래스 초대코드 등록 모달 (파일 없음: screenshots/admin_20250213/31-마이클래스-초대코드등록-모달.png)</figcaption></figure>
+        <figure><figcaption class="missing">마이클래스 상세 (파일 없음: screenshots/admin_20250213/32-마이클래스-상세.png)</figcaption></figure>
+        <figure><figcaption class="missing">세션참여 (파일 없음: screenshots/admin_20250213/33-세션참여.png)</figcaption></figure>
+        <figure><figcaption class="missing">결과보기 (파일 없음: screenshots/admin_20250213/34-결과보기.png)</figcaption></figure>
+      </div>
+    </div>
+    <div class="section">
+      <h3>기능 정의</h3>
+      <table>
+        <thead><tr><th>기능명</th><th>경로</th><th>컴포넌트</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>대시보드</td><td><code>/master/dashboard</code></td><td>MasterDashboard</td><td>마스터 대시보드</td></tr>
+          <tr><td>마이클래스</td><td><code>/master/my-classes</code></td><td>MyClassList</td><td>참여 클래스 목록</td></tr>
+          <tr><td>마이클래스 상세</td><td><code>/master/my-classes/:id</code></td><td>MyClassDetail</td><td>클래스 상세</td></tr>
+          <tr><td>오픈클래스</td><td><code>/master/open-class-list</code></td><td>OpenClassList</td><td>오픈클래스 목록</td></tr>
+          <tr><td>오픈클래스 생성</td><td><code>/master/open-class/create</code></td><td>OpenClassCreate</td><td>오픈클래스 생성</td></tr>
+          <tr><td>오픈클래스 상세</td><td><code>/master/open-class/:id</code></td><td>OpenClassDetail</td><td>오픈클래스 상세/편집</td></tr>
+          <tr><td>클래스 관리</td><td><code>/master/class-management</code></td><td>MyClassManagement</td><td>클래스 관리 목록</td></tr>
+          <tr><td>기관클래스 생성</td><td><code>/master/class/create</code></td><td>MyClassCreate</td><td>기관클래스 생성</td></tr>
+          <tr><td>기관클래스 편집</td><td><code>/master/class/edit/:id</code></td><td>MyClassEdit</td><td>기관클래스 편집</td></tr>
+          <tr><td>프로덕트 관리</td><td><code>/master/product-management</code></td><td>ProductManagement</td><td>프로덕트 목록</td></tr>
+          <tr><td>프로덕트 생성</td><td><code>/master/product/create</code></td><td>ProductCreate</td><td>프로덕트 생성</td></tr>
+          <tr><td>프로덕트 편집</td><td><code>/master/product/edit/:id</code></td><td>ProductEdit</td><td>프로덕트 편집</td></tr>
+          <tr><td>시나리오</td><td><code>/master/scenarios</code></td><td>MasterScenarioManagement</td><td>시나리오 관리</td></tr>
+          <tr><td>관리자 설정</td><td><code>/master/organization</code></td><td>MyOrganization</td><td>기관(MyOrganization)</td></tr>
+          <tr><td>주문관리</td><td><code>/master/order-management</code></td><td>OrderManagement</td><td>주문 목록</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>데이터 정의</h3>
+      <table>
+        <thead><tr><th>엔티티</th><th>필드</th><th>출처</th></tr></thead>
+        <tbody>
+          <tr><td>ClassItem</td><td>id, type, title, curriculum, participationPeriod, organizationId, saleStatus</td><td>data/classes.ts</td></tr>
+          <tr><td>Organization</td><td>id, name, licenseType, licenseCount, userCount</td><td>types/admin, data/organizations</td></tr>
+          <tr><td>OrderRow</td><td>id, ordererName, type, amount, status, salesChannel</td><td>pages/order/OrderManagement</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>사용자 워크플로우</h3>
+      <ul class="workflow">
+        <li><strong>오픈클래스 개설</strong> 클래스 관리 → 오픈클래스 생성 → 정보 입력 → 저장</li>
+        <li><strong>기관클래스 개설</strong> 클래스 관리 → 기관클래스 생성 → 커리큘럼 설정 → 저장</li>
+        <li><strong>마이클래스 학습</strong> 마이클래스 목록 → 마이클래스 상세 → 세션 참여 → 결과보기</li>
+      </ul>
+    </div>
+  </div>
+  <div class="role">
+    <h2>3. Admin</h2>
+    <div class="section">
+      <h3>스크린샷</h3>
+      <div class="screenshots">
+        <figure><img src="../screenshots/admin_20250213/01-dashboard.png" alt="대시보드" loading="lazy" /><figcaption>대시보드</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/02-기관고객관리.png" alt="기관고객 관리" loading="lazy" /><figcaption>기관고객 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/03-기관고객-상세.png" alt="기관고객 상세" loading="lazy" /><figcaption>기관고객 상세</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/04-클래스관리.png" alt="클래스 관리" loading="lazy" /><figcaption>클래스 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/05-오픈클래스-생성.png" alt="오픈클래스 생성" loading="lazy" /><figcaption>오픈클래스 생성</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/06-기관클래스-생성.png" alt="기관클래스 생성" loading="lazy" /><figcaption>기관클래스 생성</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/07-오픈클래스-상세.png" alt="오픈클래스 상세" loading="lazy" /><figcaption>오픈클래스 상세</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/08-오픈클래스-편집.png" alt="오픈클래스 편집" loading="lazy" /><figcaption>오픈클래스 편집</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/09-기관클래스-상세.png" alt="기관클래스 상세" loading="lazy" /><figcaption>기관클래스 상세</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/10-기관클래스-편집.png" alt="기관클래스 편집" loading="lazy" /><figcaption>기관클래스 편집</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/11-프로덕트관리.png" alt="프로덕트 관리" loading="lazy" /><figcaption>프로덕트 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/12-프로덕트-생성.png" alt="프로덕트 생성" loading="lazy" /><figcaption>프로덕트 생성</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/13-프로덕트-상세.png" alt="프로덕트 상세" loading="lazy" /><figcaption>프로덕트 상세</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/14-프로덕트-편집.png" alt="프로덕트 편집" loading="lazy" /><figcaption>프로덕트 편집</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/15-사용자관리.png" alt="사용자 관리" loading="lazy" /><figcaption>사용자 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/17-시나리오관리.png" alt="시나리오 관리" loading="lazy" /><figcaption>시나리오 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/19-주문관리.png" alt="주문 관리" loading="lazy" /><figcaption>주문 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20-주문등록.png" alt="주문 등록" loading="lazy" /><figcaption>주문 등록</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20a-주문생성-구독-품목추가.png" alt="주문생성 - 구독 품목추가" loading="lazy" /><figcaption>주문생성 - 구독 품목추가</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20b-주문생성-장비물품-품목추가.png" alt="주문생성 - 장비물품 품목추가" loading="lazy" /><figcaption>주문생성 - 장비물품 품목추가</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20c-주문생성-오픈클래스-품목추가.png" alt="주문생성 - 오픈클래스 품목추가" loading="lazy" /><figcaption>주문생성 - 오픈클래스 품목추가</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20d-주문생성-커스텀서비스-품목추가.png" alt="주문생성 - 커스텀서비스 품목추가" loading="lazy" /><figcaption>주문생성 - 커스텀서비스 품목추가</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/20e-주문상세조회.png" alt="주문 상세조회" loading="lazy" /><figcaption>주문 상세조회</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/21-에셋-이벤트관리.png" alt="에셋 - 이벤트 관리" loading="lazy" /><figcaption>에셋 - 이벤트 관리</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/22-에셋-이벤트생성.png" alt="에셋 - 이벤트 생성" loading="lazy" /><figcaption>에셋 - 이벤트 생성</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/23-에셋-증상.png" alt="에셋 - 증상" loading="lazy" /><figcaption>에셋 - 증상</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/24-에셋-태스크.png" alt="에셋 - 태스크" loading="lazy" /><figcaption>에셋 - 태스크</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/25-에셋-액션.png" alt="에셋 - 액션" loading="lazy" /><figcaption>에셋 - 액션</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/26-에셋-대화.png" alt="에셋 - 대화" loading="lazy" /><figcaption>에셋 - 대화</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/27-에셋-아이템.png" alt="에셋 - 아이템" loading="lazy" /><figcaption>에셋 - 아이템</figcaption></figure>
+        <figure><img src="../screenshots/admin_20250213/29-설정.png" alt="설정" loading="lazy" /><figcaption>설정</figcaption></figure>
+      </div>
+    </div>
+    <div class="section">
+      <h3>기능 정의</h3>
+      <table>
+        <thead><tr><th>기능명</th><th>경로</th><th>컴포넌트</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>대시보드</td><td><code>/admin/dashboard</code></td><td>AdminDashboard</td><td>관리자 대시보드</td></tr>
+          <tr><td>기관 관리</td><td><code>/admin/organizations</code></td><td>OrganizationList</td><td>기관 목록</td></tr>
+          <tr><td>기관 상세</td><td><code>/admin/organizations/:id</code></td><td>OrganizationDetail</td><td>기관 상세/라이선스</td></tr>
+          <tr><td>사용자 관리</td><td><code>/admin/users</code></td><td>UserManagement</td><td>사용자 목록/일괄등록</td></tr>
+          <tr><td>주문 관리</td><td><code>/admin/order-management</code></td><td>OrderManagement</td><td>주문 목록</td></tr>
+          <tr><td>주문 상세</td><td><code>/admin/order-management/:orderId</code></td><td>OrderDetail</td><td>주문 상세</td></tr>
+          <tr><td>주문 등록</td><td><code>/admin/order-management/create</code></td><td>OrderCreate</td><td>주문 생성(구독/장비/오픈클래스/커스텀)</td></tr>
+          <tr><td>프로덕트 관리</td><td><code>/admin/product-management</code></td><td>ProductManagement</td><td>프로덕트 목록</td></tr>
+          <tr><td>프로덕트 생성</td><td><code>/admin/product/create</code></td><td>ProductCreate</td><td>프로덕트 생성</td></tr>
+          <tr><td>프로덕트 상세/편집</td><td><code>/admin/product/detail/:id</code></td><td>ProductDetail</td><td>프로덕트 상세/편집</td></tr>
+          <tr><td>클래스 관리</td><td><code>/admin/class-management</code></td><td>ClassManagement</td><td>오픈/기관 클래스 목록</td></tr>
+          <tr><td>오픈클래스 생성/편집</td><td><code>/admin/open-class/create</code></td><td>OpenClassCreate</td><td>오픈클래스 생성·편집</td></tr>
+          <tr><td>기관클래스 생성/편집</td><td><code>/admin/class/create</code></td><td>MyClassCreate</td><td>기관클래스 생성·편집</td></tr>
+          <tr><td>시나리오</td><td><code>/admin/scenarios</code></td><td>AdminScenarioManagement</td><td>시나리오 관리</td></tr>
+          <tr><td>에셋(이벤트/증상/태스크/액션/대화/아이템)</td><td><code>/admin/assets/*</code></td><td>EventManagement 등</td><td>에셋 관리</td></tr>
+          <tr><td>설정</td><td><code>/settings</code></td><td>Settings</td><td>설정</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>데이터 정의</h3>
+      <table>
+        <thead><tr><th>엔티티</th><th>필드</th><th>출처</th></tr></thead>
+        <tbody>
+          <tr><td>Organization</td><td>id, name, country, type, status, licenseType, licenseCount, userCount</td><td>types/admin, data/organizations</td></tr>
+          <tr><td>OrderRow</td><td>id, ordererName, type, currency, amount, cost, expectedProfit, status, salesChannel</td><td>pages/order/OrderManagement</td></tr>
+          <tr><td>OrderDetailItem</td><td>id, productName, optionName, quantity, unitPrice, amount, period, periodUnit</td><td>pages/order/OrderDetail</td></tr>
+          <tr><td>ClassItem</td><td>id, title, curriculum, organizationId, saleStatus, price</td><td>data/classes.ts</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>사용자 워크플로우</h3>
+      <ul class="workflow">
+        <li><strong>기관·주문 관리</strong> 기관 관리 → 기관 상세 → 주문 관리 → 주문 등록/상세</li>
+        <li><strong>주문 생성(유형별)</strong> 주문 등록 → 주문유형 선택(구독/장비/오픈클래스/커스텀) → 품목 추가 → 저장</li>
+        <li><strong>클래스·프로덕트 관리</strong> 클래스 관리 → 오픈/기관클래스 생성·상세·편집 → 프로덕트 관리·생성·편집</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
