@@ -13,7 +13,7 @@ import EditOrganizationModal from './modals/EditOrganizationModal';
 import { Organization, License, User } from '../../types/admin';
 import { MOCK_ORDERS } from '../order/OrderDetail';
 
-/** 주문내역 탭: 해당 기관 주문 목록 (주문번호, 주문유형, 품목 정보 목록, 주문상태, 주문일시) */
+/** 주문내역 탭: 해당 기관 주문 목록 (주문번호, 프로덕트 유형, 품목 정보 목록, 주문상태, 주문일시) */
 function OrgOrderTable({ organizationName }: { organizationName: string }): React.ReactElement {
     const rows = useMemo(() => {
         if (!isFeatureEnabled('USE_MOCK_DATA')) return [];
@@ -32,7 +32,7 @@ function OrgOrderTable({ organizationName }: { organizationName: string }): Reac
                 <TableHeader className="bg-gray-50">
                     <TableRow>
                         <TableHead className="text-center w-[140px]">주문번호</TableHead>
-                        <TableHead className="w-[120px]">주문유형</TableHead>
+                        <TableHead className="w-[120px]">프로덕트 유형</TableHead>
                         <TableHead>품목 정보 목록</TableHead>
                         <TableHead className="text-center w-[100px]">주문상태</TableHead>
                         <TableHead className="text-center w-[160px]">주문일시</TableHead>

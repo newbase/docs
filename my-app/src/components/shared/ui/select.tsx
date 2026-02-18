@@ -217,6 +217,7 @@ interface ComboBoxProps {
   triggerClassName?: string;
   label?: string;
   labelPlacement?: "top" | "left" | "hidden";
+  disabled?: boolean;
 }
 
 function ComboBox({
@@ -227,7 +228,8 @@ function ComboBox({
   className,
   triggerClassName,
   label,
-  labelPlacement = "top"
+  labelPlacement = "top",
+  disabled = false
 }: ComboBoxProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -261,20 +263,22 @@ function ComboBox({
         <div className="relative">
           <input
             type="text"
+            disabled={disabled}
             className={cn(
-              "flex h-[38px] w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-[38px] w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
+              disabled && "bg-gray-50 cursor-not-allowed",
               triggerClassName
             )}
             placeholder={placeholder}
             value={searchTerm}
             onChange={(e) => {
+              if (disabled) return;
               setSearchTerm(e.target.value);
               onValueChange(e.target.value);
               if (!isOpen) setIsOpen(true);
             }}
-            onFocus={() => setIsOpen(true)}
+            onFocus={() => !disabled && setIsOpen(true)}
             onBlur={() => {
-              // Delay closing to allow clicking on an option
               setTimeout(() => setIsOpen(false), 200);
             }}
           />
@@ -283,7 +287,7 @@ function ComboBox({
           </div>
         </div>
 
-        {isOpen && filteredOptions.length > 0 && (
+        {isOpen && !disabled && filteredOptions.length > 0 && (
           <div className="absolute z-[1100] mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg ring-2 ring-black ring-opacity-5 focus:outline-none">
             {filteredOptions.map((option) => (
               <div

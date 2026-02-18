@@ -82,7 +82,7 @@ export default function MyClassEdit(): React.ReactElement {
     const [country, setCountry] = useState<string>('');
     const [currency, setCurrency] = useState<string>('원');
     const [partnerOrgId, setPartnerOrgId] = useState<string>('none');
-    const [discountType, setDiscountType] = useState<'none' | 'affiliate' | 'event'>('none');
+    const [discountType, setDiscountType] = useState<'none' | 'event'>('none');
     const [affiliateOrg, setAffiliateOrg] = useState('');
     const [discountCondition, setDiscountCondition] = useState('');
 

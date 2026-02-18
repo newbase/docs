@@ -11,9 +11,9 @@ import { isFeatureEnabled } from '../../config/featureFlags';
 
 const ITEMS_PER_PAGE = 10;
 
-/** 주문유형별 탭: 전체 | 구독 | 장비/물품 | 커스텀 서비스 | 오픈클래스 */
-const ORDER_TYPE_TABS = ['all', '구독', '장비/물품', '커스텀 서비스', '오픈클래스'] as const;
-type OrderTypeTab = typeof ORDER_TYPE_TABS[number];
+/** 프로덕트 유형별 탭: 전체 | 콘텐츠 | 상품 | 서비스 */
+const PRODUCT_TYPE_TABS = ['all', '콘텐츠', '상품', '서비스'] as const;
+type ProductTypeTab = typeof PRODUCT_TYPE_TABS[number];
 
 interface OrderRow {
     id: string;
@@ -31,13 +31,13 @@ interface OrderRow {
 }
 
 const MOCK_ORDERS: OrderRow[] = [
-    { id: 'ORD-2025-001', ordererName: '서울대학교병원', type: '구독', currency: 'KRW', amount: 5500000, cost: 4000000, expectedProfit: 1000000, actualProfit: 1000000, salesChannel: '본사', status: '상담', createdAt: '2025-02-10 14:30', updatedAt: '2025-02-10 14:30' },
-    { id: 'ORD-2025-002', ordererName: '연세대학교병원', type: '장비/물품', currency: 'KRW', amount: 3300000, cost: 2500000, expectedProfit: 500000, actualProfit: 0, salesChannel: '본사', status: '진행', createdAt: '2025-02-10 11:20', updatedAt: '2025-02-11 09:00' },
-    { id: 'ORD-2025-003', ordererName: '삼성서울병원', type: '구독', currency: 'KRW', amount: 11000000, cost: 8000000, expectedProfit: 2000000, actualProfit: 0, salesChannel: '메디컬에듀 판매처', status: '진행', createdAt: '2025-02-11 09:15', updatedAt: '2025-02-12 10:00' },
-    { id: 'ORD-2025-004', ordererName: '가톨릭대학교 서울성모병원', type: '커스텀 서비스', currency: 'KRW', amount: 2750000, cost: 1500000, expectedProfit: 800000, actualProfit: 750000, salesChannel: '본사', status: '완료', createdAt: '2025-02-11 16:45', updatedAt: '2025-02-13 14:00' },
-    { id: 'ORD-2025-005', ordererName: '분당서울대병원', type: '오픈클래스', currency: 'KRW', amount: 2200000, cost: 1200000, expectedProfit: 700000, actualProfit: 680000, salesChannel: '본사', status: '완료', createdAt: '2025-02-12 10:00', updatedAt: '2025-02-14 11:00' },
-    { id: 'ORD-2025-006', ordererName: '강남세브란스병원', type: '장비/물품', currency: 'KRW', amount: 4400000, cost: 3200000, expectedProfit: 900000, actualProfit: -50000, salesChannel: '헬스케어솔루션', status: '환불완료', createdAt: '2025-02-09 15:30', updatedAt: '2025-02-15 16:00' },
-    { id: 'ORD-2025-007', ordererName: '고려대학교안암병원', type: '구독', currency: 'KRW', amount: 1100000, cost: 800000, expectedProfit: 200000, actualProfit: 0, salesChannel: '본사', status: '대기', createdAt: '2025-02-08 13:20', updatedAt: '2025-02-08 13:20' },
+    { id: 'ORD-2025-001', ordererName: '서울대학교병원', type: '콘텐츠', currency: 'KRW', amount: 5500000, cost: 4000000, expectedProfit: 1000000, actualProfit: 1000000, salesChannel: '본사', status: '상담', createdAt: '2025-02-10 14:30', updatedAt: '2025-02-10 14:30' },
+    { id: 'ORD-2025-002', ordererName: '연세대학교병원', type: '상품', currency: 'KRW', amount: 3300000, cost: 2500000, expectedProfit: 500000, actualProfit: 0, salesChannel: '본사', status: '진행', createdAt: '2025-02-10 11:20', updatedAt: '2025-02-11 09:00' },
+    { id: 'ORD-2025-003', ordererName: '삼성서울병원', type: '콘텐츠', currency: 'KRW', amount: 11000000, cost: 8000000, expectedProfit: 2000000, actualProfit: 0, salesChannel: '메디컬에듀 판매처', status: '진행', createdAt: '2025-02-11 09:15', updatedAt: '2025-02-12 10:00' },
+    { id: 'ORD-2025-004', ordererName: '가톨릭대학교 서울성모병원', type: '서비스', currency: 'KRW', amount: 2750000, cost: 1500000, expectedProfit: 800000, actualProfit: 750000, salesChannel: '본사', status: '완료', createdAt: '2025-02-11 16:45', updatedAt: '2025-02-13 14:00' },
+    { id: 'ORD-2025-005', ordererName: '분당서울대병원', type: '콘텐츠', currency: 'KRW', amount: 2200000, cost: 1200000, expectedProfit: 700000, actualProfit: 680000, salesChannel: '본사', status: '완료', createdAt: '2025-02-12 10:00', updatedAt: '2025-02-14 11:00' },
+    { id: 'ORD-2025-006', ordererName: '강남세브란스병원', type: '상품', currency: 'KRW', amount: 4400000, cost: 3200000, expectedProfit: 900000, actualProfit: -50000, salesChannel: '헬스케어솔루션', status: '환불완료', createdAt: '2025-02-09 15:30', updatedAt: '2025-02-15 16:00' },
+    { id: 'ORD-2025-007', ordererName: '고려대학교안암병원', type: '콘텐츠', currency: 'KRW', amount: 1100000, cost: 800000, expectedProfit: 200000, actualProfit: 0, salesChannel: '본사', status: '대기', createdAt: '2025-02-08 13:20', updatedAt: '2025-02-08 13:20' },
 ];
 
 export default function OrderManagement(): React.ReactElement {
@@ -48,7 +48,7 @@ export default function OrderManagement(): React.ReactElement {
 
     // TODO: Use order list query when Order API is available
     const loading = false;
-    const [activeTab, setActiveTab] = useState<OrderTypeTab>('all');
+    const [activeTab, setActiveTab] = useState<ProductTypeTab>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [salesChannelFilter, setSalesChannelFilter] = useState('');
@@ -80,7 +80,7 @@ export default function OrderManagement(): React.ReactElement {
         const totalAmount = orders.reduce((sum, o) => sum + o.amount, 0);
         const totalProfit = orders.reduce((sum, o) => sum + o.expectedProfit, 0);
         const totalRate = totalAmount > 0 ? ((totalProfit / totalAmount) * 100).toFixed(1) : '0';
-        const byType = (ORDER_TYPE_TABS.filter((t) => t !== 'all') as readonly string[]).map((type) => {
+        const byType = (PRODUCT_TYPE_TABS.filter((t) => t !== 'all') as readonly string[]).map((type) => {
             const list = orders.filter((o) => o.type === type);
             const amount = list.reduce((s, o) => s + o.amount, 0);
             const profit = list.reduce((s, o) => s + o.expectedProfit, 0);
@@ -104,7 +104,7 @@ export default function OrderManagement(): React.ReactElement {
             return {
                 ...rest,
                 onClick: () => {
-                    setActiveTab(filterValue as OrderTypeTab);
+                    setActiveTab(filterValue as ProductTypeTab);
                     setCurrentPage(1);
                 },
                 isActive: activeTab === filterValue,
@@ -209,7 +209,7 @@ export default function OrderManagement(): React.ReactElement {
                                     <TableRow>
                                         <TableHead className="text-center w-[140px]">주문번호</TableHead>
                                         <TableHead>주문자명</TableHead>
-                                        {activeTab === 'all' && <TableHead className="w-[140px]">주문유형</TableHead>}
+                                        {activeTab === 'all' && <TableHead className="w-[140px]">프로덕트 유형</TableHead>}
                                         <TableHead className="text-center w-[120px]">주문금액</TableHead>
                                         <TableHead className="text-center w-[120px]">(예상)매출이익</TableHead>
                                         <TableHead className="text-center w-[120px]">판매처</TableHead>
@@ -256,7 +256,7 @@ export default function OrderManagement(): React.ReactElement {
                                             <TableCell colSpan={activeTab === 'all' ? 8 : 7} className="h-40 text-center text-gray-500">
                                                 <div className="flex flex-col items-center justify-center space-y-2">
                                                     <Package size={40} className="text-gray-300 mb-2" />
-                                                    <p className="font-medium">{activeTab === 'all' ? '주문이 없습니다.' : `해당 유형의 주문이 없습니다.`}</p>
+                                                    <p className="font-medium">{activeTab === 'all' ? '주문이 없습니다.' : '해당 프로덕트 유형의 주문이 없습니다.'}</p>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

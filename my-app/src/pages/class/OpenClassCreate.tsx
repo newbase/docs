@@ -82,7 +82,7 @@ export default function OpenClassCreate(): React.ReactElement {
     const [country, setCountry] = useState<string>('');
     const [currency, setCurrency] = useState<string>('원');
     const [partnerOrgId, setPartnerOrgId] = useState<string>('none');
-    const [discountType, setDiscountType] = useState<'none' | 'affiliate' | 'event'>('none');
+    const [discountType, setDiscountType] = useState<'none' | 'event'>('none');
     const [discountCondition, setDiscountCondition] = useState('');
 
     // Offline participation specific state
@@ -121,6 +121,7 @@ export default function OpenClassCreate(): React.ReactElement {
     const [inPersonRecruitmentCapacity, setInPersonRecruitmentCapacity] = useState<number>(30);
     const [participationInfo, setParticipationInfo] = useState('');
 
+
     // Fetch organizations for admin
     // determine if we still need organizationsData if it's used elsewhere
     // In this file, it seems only used for the selection we are removing.
@@ -133,9 +134,13 @@ export default function OpenClassCreate(): React.ReactElement {
         return start.toISOString().split('T')[0];
     }, [visibility, licenseStartDate, validityPeriodMonths]);
 
-    // Duplication state
+    // Duplication / 프로덕트 선택 후 전달 state (위저드: 오픈클래스 생성 → 온라인 참여/대면 참여)
     const location = useLocation();
     const duplicateFrom = location.state?.duplicateFrom as ClassItem | undefined;
+    const selectedProduct = location.state?.selectedProduct as ClassItem | undefined;
+    const participationType = location.state?.participationType as 'online' | 'inPerson' | undefined;
+    const wizardOrganizationId = location.state?.organizationId as string | undefined;
+    const effectiveOrganizationId = wizardOrganizationId || organizationId;
 
     // Validation state
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -169,62 +174,86 @@ export default function OpenClassCreate(): React.ReactElement {
         fetchOrgs();
     }, []);
 
-    // Initialize state if duplicating
+    // Initialize state if duplicating or from selected product (클래스 생성 → 프로덕트 선택 후 이동)
     useEffect(() => {
-        if (duplicateFrom) {
-            setClassName(`${duplicateFrom.title} (copy)`);
-            setPartnerOrganization(duplicateFrom.organizationName || '');
-            setDescription(duplicateFrom.description || '');
+        const source = duplicateFrom || selectedProduct;
+        if (!source) return;
 
-            if (duplicateFrom.participationPeriod) {
-                setStartDate(duplicateFrom.participationPeriod.startDate);
-                setEndDate(duplicateFrom.participationPeriod.endDate);
-            }
+        const isCopy = !!duplicateFrom;
+        setClassName(isCopy ? `${source.title} (copy)` : source.title);
+        setPartnerOrganization(source.organizationName || '');
+        setDescription(source.description || '');
 
-            if (duplicateFrom.completionRequirements) {
-                setCompletionRequirements(duplicateFrom.completionRequirements);
-            }
-
-            // Map curriculum items back
-            const initialItems: CurriculumItem[] = (duplicateFrom.curriculum || []).map(item => {
-                const itemId = `copy-${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-                if (item.type === 'video') {
-                    return {
-                        id: itemId,
-                        type: 'video',
-                        data: {
-                            id: item.id.toString(),
-                            title: item.name,
-                            url: '', // Missing in legacy data
-                            duration: item.duration,
-                            author: {
-                                name: item.author || 'Unknown',
-                                type: item.authorType || 'individual'
-                            },
-                            description: ''
-                        } as VideoLecture
-                    };
-                } else {
-                    // Default to scenario
-                    const detail = scenarioDetails[item.id];
-                    return {
-                        id: itemId,
-                        type: 'scenario',
-                        data: detail || {
-                            id: item.id,
-                            title: item.name,
-                            duration: item.duration,
-                            platform: item.platform,
-                            ContributedBy: item.author || 'Medicrew',
-                            // Add other required fields with defaults if detail is missing
-                        } as any
-                    };
-                }
-            });
-            setCurriculumItems(initialItems);
+        if (source.participationPeriod) {
+            setStartDate(source.participationPeriod.startDate);
+            setEndDate(source.participationPeriod.endDate);
         }
-    }, [duplicateFrom]);
+
+        if (source.completionRequirements) {
+            setCompletionRequirements(source.completionRequirements);
+        }
+
+        if (selectedProduct?.thumbnail) {
+            setCustomThumbnail(selectedProduct.thumbnail);
+        }
+
+        if (selectedProduct?.price != null) {
+            setPrice(selectedProduct.price);
+        }
+        if (selectedProduct?.participationInfo != null) {
+            setParticipationInfo(selectedProduct.participationInfo);
+        }
+
+        // Map curriculum items back
+        const initialItems: CurriculumItem[] = (source.curriculum || []).map(item => {
+            const itemId = `copy-${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+            if (item.type === 'video') {
+                return {
+                    id: itemId,
+                    type: 'video',
+                    data: {
+                        id: item.id.toString(),
+                        title: item.name,
+                        url: '', // Missing in legacy data
+                        duration: item.duration,
+                        author: {
+                            name: item.author || 'Unknown',
+                            type: item.authorType || 'individual'
+                        },
+                        description: ''
+                    } as VideoLecture
+                };
+            } else {
+                // Default to scenario
+                const detail = scenarioDetails[item.id];
+                return {
+                    id: itemId,
+                    type: 'scenario',
+                    data: detail || {
+                        id: item.id,
+                        title: item.name,
+                        duration: item.duration,
+                        platform: item.platform,
+                        ContributedBy: item.author || 'Medicrew',
+                        // Add other required fields with defaults if detail is missing
+                    } as any
+                };
+            }
+        });
+        setCurriculumItems(initialItems);
+    }, [duplicateFrom, selectedProduct]);
+
+    // 위저드에서 선택한 참여 방식 반영 (온라인 참여 / 대면 참여)
+    useEffect(() => {
+        if (participationType === 'inPerson') {
+            setParticipationMethod('offline');
+            setShowOfflineFields(true);
+        } else if (participationType === 'online') {
+            setParticipationMethod('online');
+            setShowOfflineFields(false);
+        }
+    }, [participationType]);
 
     const handleCountryChange = (selectedCountry: string) => {
         setCountry(selectedCountry);
@@ -248,32 +277,42 @@ export default function OpenClassCreate(): React.ReactElement {
         }
 
         if (visibility === 'organization') {
-            // 공개: 참여방법, 수강기간, 참가비, 할인 설정 검증
-            if (price === undefined || price < 0) {
-                newErrors.price = '참가비를 입력해주세요.';
-            }
-            if (accessPeriodType === 'days') {
-                if (accessPeriod < 1) newErrors.accessPeriod = '수강기간은 1일 이상이어야 합니다.';
-            } else {
-                if (!accessStartDate) newErrors.accessPeriod = '시작일을 선택해주세요.';
-                if (!accessEndDate) newErrors.accessPeriod = '종료일을 선택해주세요.';
-                if (accessStartDate && accessEndDate && new Date(accessStartDate) > new Date(accessEndDate)) {
-                    newErrors.accessPeriod = '종료일은 시작일 이후여야 합니다.';
+            // 프로덕트 선택 후: 추가 입력(수강기간) 검증
+            if (selectedProduct) {
+                if (!startDate) newErrors.classStartDate = '수강 시작일을 선택해주세요.';
+                if (!endDate) newErrors.classEndDate = '수강 종료일을 선택해주세요.';
+                if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                    newErrors.classEndDate = '수강 종료일은 시작일 이후여야 합니다.';
                 }
             }
-            if (discountType !== 'none' && discountPrice > price) {
-                newErrors.discountPrice = '할인가는 수강료보다 클 수 없습니다.';
-            }
-            if (showOfflineFields) {
-                if (!inPersonRecruitmentStartDate) newErrors.inPersonRecruitmentStartDate = '모집 시작일을 입력해주세요.';
-                if (!inPersonRecruitmentEndDate) newErrors.inPersonRecruitmentEndDate = '모집 종료일을 입력해주세요.';
-                if (inPersonRecruitmentStartDate && inPersonRecruitmentEndDate && new Date(inPersonRecruitmentStartDate) > new Date(inPersonRecruitmentEndDate)) {
-                    newErrors.inPersonRecruitmentEndDate = '모집 종료일은 시작일 이후여야 합니다.';
+            const fromProduct = !!selectedProduct;
+            if (!fromProduct) {
+                if (price === undefined || price < 0) {
+                    newErrors.price = '참가비를 입력해주세요.';
                 }
-                if (!inPersonRecruitmentCapacity || inPersonRecruitmentCapacity < 1) {
-                    newErrors.inPersonRecruitmentCapacity = '모집인원은 1명 이상이어야 합니다.';
+                if (accessPeriodType === 'days') {
+                    if (accessPeriod < 1) newErrors.accessPeriod = '수강기간은 1일 이상이어야 합니다.';
+                } else {
+                    if (!accessStartDate) newErrors.accessPeriod = '시작일을 선택해주세요.';
+                    if (!accessEndDate) newErrors.accessPeriod = '종료일을 선택해주세요.';
+                    if (accessStartDate && accessEndDate && new Date(accessStartDate) > new Date(accessEndDate)) {
+                        newErrors.accessPeriod = '종료일은 시작일 이후여야 합니다.';
+                    }
                 }
-                if (!participationInfo.trim()) newErrors.participationInfo = '참여안내를 입력해주세요.';
+                if (discountType !== 'none' && discountPrice > price) {
+                    newErrors.discountPrice = '할인가는 수강료보다 클 수 없습니다.';
+                }
+                if (showOfflineFields) {
+                    if (!inPersonRecruitmentStartDate) newErrors.inPersonRecruitmentStartDate = '모집 시작일을 입력해주세요.';
+                    if (!inPersonRecruitmentEndDate) newErrors.inPersonRecruitmentEndDate = '모집 종료일을 입력해주세요.';
+                    if (inPersonRecruitmentStartDate && inPersonRecruitmentEndDate && new Date(inPersonRecruitmentStartDate) > new Date(inPersonRecruitmentEndDate)) {
+                        newErrors.inPersonRecruitmentEndDate = '모집 종료일은 시작일 이후여야 합니다.';
+                    }
+                    if (!inPersonRecruitmentCapacity || inPersonRecruitmentCapacity < 1) {
+                        newErrors.inPersonRecruitmentCapacity = '모집인원은 1명 이상이어야 합니다.';
+                    }
+                    if (!participationInfo.trim()) newErrors.participationInfo = '참여안내를 입력해주세요.';
+                }
             }
         } else {
             // 비공개: 라이선스 설정 검증
@@ -293,8 +332,8 @@ export default function OpenClassCreate(): React.ReactElement {
     };
 
     const handleSubmit = async () => {
-        if (!validateForm() || !organizationId) {
-            if (!organizationId) alert('기관 정보가 없습니다.');
+        if (!validateForm() || !effectiveOrganizationId) {
+            if (!effectiveOrganizationId) alert('기관 정보가 없습니다.');
             return;
         }
 
@@ -317,7 +356,7 @@ export default function OpenClassCreate(): React.ReactElement {
             }
 
             const requestData: CreateCourseRequestDto = {
-                organizationId: organizationId ? Number(organizationId) : 0,
+                organizationId: effectiveOrganizationId ? Number(effectiveOrganizationId) : 0,
                 organizationLicenseIdList: [1], // TODO: 실제 라이선스 ID 연동 필요
                 title: className,
                 isPrivate: visibility === 'private',
@@ -444,6 +483,7 @@ export default function OpenClassCreate(): React.ReactElement {
                         onItemsChange={setCurriculumItems}
                         error={errors.scenarios}
                         purchasedProducts={purchasedProducts}
+                        initialSelectedProductId={selectedProduct?.id ?? undefined}
                     />
 
                     <div className="border-t border-gray-200"></div>
@@ -601,231 +641,318 @@ export default function OpenClassCreate(): React.ReactElement {
 
                     {visibility === 'organization' ? (
                         <>
-                            {/* 참여방법 */}
-                            <div className="flex items-start gap-8">
-                                <label className="text-sm font-medium text-gray-700 w-28 pt-2">
-                                    참여방법
-                                </label>
-                                <div className="flex-1 space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <Input
-                                            value={customParticipationMethod}
-                                            onChange={(e) => setCustomParticipationMethod(e.target.value)}
-                                            placeholder="예: 온라인 실습, 대면 실습 등"
-                                            wrapperClassName="w-64"
-                                            className="h-9"
-                                        />
-                                        <div className="flex items-center gap-2 pt-1">
-                                            <Checkbox
-                                                id="showOfflineFields"
-                                                checked={showOfflineFields}
-                                                onCheckedChange={(checked) => setShowOfflineFields(!!checked)}
-                                            />
-                                            <label htmlFor="showOfflineFields" className="text-sm text-gray-600 cursor-pointer">
-                                                대면 참여 정보 입력
-                                            </label>
-                                        </div>
+                            {selectedProduct ? (
+                                /* 프로덕트 선택 후: 프로덕트 정보 표시(수정 불가) + 추가 입력(유효기간·수강기간) */
+                                <>
+                                    <div className="border-t border-gray-200"></div>
+                                    <div className="space-y-4 pt-4">
+                                        <p className="text-sm text-gray-500">아래는 선택한 프로덕트 정보이며 수정할 수 없습니다.</p>
+                                        <dl className="grid gap-3 text-sm">
+                                            <div className="flex gap-4">
+                                                <dt className="text-gray-600 w-28 shrink-0">참여방법</dt>
+                                                <dd className="text-gray-900">
+                                                    {participationType === 'online' ? '온라인' : participationType === 'inPerson' ? '대면' : selectedProduct.participationMethod ?? '-'}
+                                                </dd>
+                                            </div>
+                                            {selectedProduct.participationInfo && (
+                                                <div className="flex gap-4">
+                                                    <dt className="text-gray-600 w-28 shrink-0">참여안내</dt>
+                                                    <dd className="text-gray-900 whitespace-pre-wrap">{selectedProduct.participationInfo}</dd>
+                                                </div>
+                                            )}
+                                            <div className="flex gap-4">
+                                                <dt className="text-gray-600 w-28 shrink-0">유효기간</dt>
+                                                <dd className="text-gray-900">
+                                                    {(() => {
+                                                        const period = selectedProduct.participationPeriod;
+                                                        const start = period?.startDate ?? selectedProduct.courseStartDate;
+                                                        const end = period?.endDate ?? selectedProduct.courseEndDate;
+                                                        if (start && end) {
+                                                            const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
+                                                            if (days % 30 === 0 && days >= 30) {
+                                                                return `${days / 30}개월`;
+                                                            }
+                                                            return `${days}일`;
+                                                        }
+                                                        return '-';
+                                                    })()}
+                                                </dd>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <dt className="text-gray-600 w-28 shrink-0">참가비</dt>
+                                                <dd className="text-gray-900">
+                                                    {selectedProduct.price != null && selectedProduct.price > 0
+                                                        ? `${selectedProduct.price.toLocaleString()}원`
+                                                        : '무료'}
+                                                </dd>
+                                            </div>
+                                            {(selectedProduct.discountType && selectedProduct.discountType !== 'none') || (selectedProduct.discountPrice != null && selectedProduct.discountPrice > 0) ? (
+                                                <div className="flex gap-4">
+                                                    <dt className="text-gray-600 w-28 shrink-0">할인</dt>
+                                                    <dd className="text-gray-900">
+                                                        {selectedProduct.discountPrice != null && selectedProduct.price != null && selectedProduct.price > 0
+                                                            ? `할인가 ${(selectedProduct.price - (selectedProduct.discountPrice || 0)).toLocaleString()}원`
+                                                            : ''}
+                                                        {selectedProduct.discountInfo ? ` · ${selectedProduct.discountInfo}` : ''}
+                                                    </dd>
+                                                </div>
+                                            ) : null}
+                                        </dl>
                                     </div>
 
-                                    {showOfflineFields && (
-                                        <div className="w-1/2 space-y-1">
-                                            <div className="flex items-center justify-start">
-                                                <label className="text-sm font-medium text-gray-700 w-24 pt-2">모집기간</label>
-                                                <div className="flex-1 w-1/3">
-                                                    <div className="flex items-center justify-start gap-2 w-full">
-                                                        <Input
-                                                            type="date"
-                                                            value={inPersonRecruitmentStartDate}
-                                                            onChange={(e) => setInPersonRecruitmentStartDate(e.target.value)}
-                                                            className="w-full h-9"
-                                                        />
-                                                        <span className="text-gray-600">~</span>
-                                                        <Input
-                                                            type="date"
-                                                            value={inPersonRecruitmentEndDate}
-                                                            onChange={(e) => setInPersonRecruitmentEndDate(e.target.value)}
-                                                            className="w-full h-9"
-                                                        />
-                                                    </div>
-                                                    {(errors.inPersonRecruitmentStartDate || errors.inPersonRecruitmentEndDate) && (
-                                                        <p className="text-xs text-red-600 mt-1">
-                                                            {errors.inPersonRecruitmentStartDate || errors.inPersonRecruitmentEndDate}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start justify-start">
-                                                <label className="text-sm font-medium text-gray-700 w-24 pt-2">모집인원</label>
-                                                <div className="flex-1">
-                                                    <Input
-                                                        type="number"
-                                                        min={1}
-                                                        value={inPersonRecruitmentCapacity}
-                                                        onChange={(e) => setInPersonRecruitmentCapacity(parseInt(e.target.value) || 0)}
-                                                        wrapperClassName="w-24"
-                                                        className="text-right h-9"
-                                                        suffix="명"
-                                                    />
-                                                    {errors.inPersonRecruitmentCapacity && (
-                                                        <p className="text-xs text-red-600 mt-1">{errors.inPersonRecruitmentCapacity}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start justify-start">
-                                                <label className="text-sm font-medium text-gray-700 w-24 pt-2">참여안내</label>
-                                                <div className="flex-1">
-                                                    <Input
-                                                        multiline
-                                                        rows={3}
-                                                        value={participationInfo}
-                                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setParticipationInfo(e.target.value)}
-                                                        placeholder="교육 장소, 일정 등 참여 안내 사항을 입력하세요"
-                                                        className="w-full"
-                                                    />
-                                                    {errors.participationInfo && (
-                                                        <p className="text-xs text-red-600 mt-1">{errors.participationInfo}</p>
-                                                    )}
-                                                </div>
+                                    <div className="border-t border-gray-200 pt-6 mt-6">
+                                        <h3 className="text-sm font-medium text-gray-700 mb-4">추가 입력정보</h3>
+                                        <div className="flex items-start gap-4">
+                                            <label className="text-sm font-medium text-gray-700 w-28 pt-2">수강기간</label>
+                                            <div className="flex-1 flex items-center gap-2">
+                                                <Input
+                                                    type="date"
+                                                    value={startDate}
+                                                    onChange={(e) => setStartDate(e.target.value)}
+                                                    className="h-9"
+                                                />
+                                                <span className="text-gray-600">~</span>
+                                                <Input
+                                                    type="date"
+                                                    value={endDate}
+                                                    onChange={(e) => setEndDate(e.target.value)}
+                                                    className="h-9"
+                                                />
+                                                {(errors.classStartDate || errors.classEndDate) && (
+                                                    <p className="text-xs text-red-600">{errors.classStartDate || errors.classEndDate}</p>
+                                                )}
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="border-t border-gray-200"></div>
-
-                            {/* 수강기간 */}
-                            <div className="flex items-start gap-4">
-                                <label className="text-sm font-medium text-gray-700 w-32 pt-2">
-                                    수강기간
-                                </label>
-                                <div className="flex-1">
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <SimpleSelect
-                                                value={accessPeriodType}
-                                                onChange={(e) => setAccessPeriodType(e.target.value as 'days' | 'dates')}
-                                                wrapperClassName="w-40"
-                                                className="h-9"
-                                            >
-                                                <option value="days">등록일로 부터</option>
-                                                <option value="dates">직접 입력</option>
-                                            </SimpleSelect>
-                                            {accessPeriodType === 'days' ? (
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {/* 참여방법 */}
+                                    <div className="flex items-start gap-8">
+                                        <label className="text-sm font-medium text-gray-700 w-28 pt-2">
+                                            참여방법
+                                        </label>
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex items-center gap-4">
                                                 <Input
-                                                    type="number"
-                                                    min={1}
-                                                    value={accessPeriod}
-                                                    onChange={(e) => setAccessPeriod(parseInt(e.target.value) || 0)}
-                                                    wrapperClassName="w-20"
-                                                    className="text-right h-9"
-                                                    suffix="일"
+                                                    value={customParticipationMethod}
+                                                    onChange={(e) => setCustomParticipationMethod(e.target.value)}
+                                                    placeholder="예: 온라인 실습, 대면 실습 등"
+                                                    wrapperClassName="w-64"
+                                                    className="h-9"
                                                 />
-                                            ) : (
-                                                <div className="flex items-center gap-2">
-                                                    <Input
-                                                        type="date"
-                                                        value={accessStartDate}
-                                                        onChange={(e) => setAccessStartDate(e.target.value)}
-                                                        className="w-41 h-9"
+                                                <div className="flex items-center gap-2 pt-1">
+                                                    <Checkbox
+                                                        id="showOfflineFields"
+                                                        checked={showOfflineFields}
+                                                        onCheckedChange={(checked) => setShowOfflineFields(!!checked)}
                                                     />
-                                                    <span>~</span>
-                                                    <Input
-                                                        type="date"
-                                                        value={accessEndDate}
-                                                        onChange={(e) => setAccessEndDate(e.target.value)}
-                                                        className="w-41 h-9"
-                                                    />
+                                                    <label htmlFor="showOfflineFields" className="text-sm text-gray-600 cursor-pointer">
+                                                        대면 참여 정보 입력
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {showOfflineFields && (
+                                                <div className="w-1/2 space-y-1">
+                                                    <div className="flex items-center justify-start">
+                                                        <label className="text-sm font-medium text-gray-700 w-24 pt-2">모집기간</label>
+                                                        <div className="flex-1 w-1/3">
+                                                            <div className="flex items-center justify-start gap-2 w-full">
+                                                                <Input
+                                                                    type="date"
+                                                                    value={inPersonRecruitmentStartDate}
+                                                                    onChange={(e) => setInPersonRecruitmentStartDate(e.target.value)}
+                                                                    className="w-full h-9"
+                                                                />
+                                                                <span className="text-gray-600">~</span>
+                                                                <Input
+                                                                    type="date"
+                                                                    value={inPersonRecruitmentEndDate}
+                                                                    onChange={(e) => setInPersonRecruitmentEndDate(e.target.value)}
+                                                                    className="w-full h-9"
+                                                                />
+                                                            </div>
+                                                            {(errors.inPersonRecruitmentStartDate || errors.inPersonRecruitmentEndDate) && (
+                                                                <p className="text-xs text-red-600 mt-1">
+                                                                    {errors.inPersonRecruitmentStartDate || errors.inPersonRecruitmentEndDate}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start justify-start">
+                                                        <label className="text-sm font-medium text-gray-700 w-24 pt-2">모집인원</label>
+                                                        <div className="flex-1">
+                                                            <Input
+                                                                type="number"
+                                                                min={1}
+                                                                value={inPersonRecruitmentCapacity}
+                                                                onChange={(e) => setInPersonRecruitmentCapacity(parseInt(e.target.value) || 0)}
+                                                                wrapperClassName="w-24"
+                                                                className="text-right h-9"
+                                                                suffix="명"
+                                                            />
+                                                            {errors.inPersonRecruitmentCapacity && (
+                                                                <p className="text-xs text-red-600 mt-1">{errors.inPersonRecruitmentCapacity}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start justify-start">
+                                                        <label className="text-sm font-medium text-gray-700 w-24 pt-2">참여안내</label>
+                                                        <div className="flex-1">
+                                                            <Input
+                                                                multiline
+                                                                rows={3}
+                                                                value={participationInfo}
+                                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setParticipationInfo(e.target.value)}
+                                                                placeholder="교육 장소, 일정 등 참여 안내 사항을 입력하세요"
+                                                                className="w-full"
+                                                            />
+                                                            {errors.participationInfo && (
+                                                                <p className="text-xs text-red-600 mt-1">{errors.participationInfo}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-                                        {errors.accessPeriod && (
-                                            <p className="text-xs text-red-600">{errors.accessPeriod}</p>
-                                        )}
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className="border-t border-gray-200"></div>
+                                    <div className="border-t border-gray-200"></div>
 
-                            {/* 참가비 */}
-                            <div className="flex items-start gap-4">
-                                <label className="text-sm font-medium text-gray-700 w-32 pt-2">
-                                    참가비
-                                </label>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            value={price}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(parseInt(e.target.value) || 0)}
-                                            wrapperClassName="w-40"
-                                            className="text-right"
-                                            suffix="원"
-                                        />
-                                        <span className="text-sm text-gray-500">참가비 무료는 0을 입력하세요.</span>
-                                    </div>
-                                    {errors.price && (
-                                        <p className="text-sm text-red-600 ml-2">{errors.price}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="border-t border-gray-200"></div>
-
-                            {/* 할인 설정 */}
-                            <div className="flex items-start gap-4">
-                                <label className="text-sm font-medium text-gray-700 w-32 pt-2">
-                                    할인 설정
-                                </label>
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <SimpleSelect
-                                            value={discountType}
-                                            onChange={(e) => setDiscountType(e.target.value as any)}
-                                            wrapperClassName="w-40"
-                                        >
-                                            <option value="none">할인 없음</option>
-                                            <option value="affiliate">제휴 할인</option>
-                                            <option value="event">이벤트 할인</option>
-                                        </SimpleSelect>
-                                    </div>
-                                    {discountType !== 'none' && (
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-4">
-                                                <label className="text-sm font-medium text-gray-700 w-24">할인가 입력</label>
-                                                <div className="flex items-center gap-2">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        value={discountPrice}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountPrice(parseInt(e.target.value) || 0)}
+                                    {/* 수강기간 */}
+                                    <div className="flex items-start gap-4">
+                                        <label className="text-sm font-medium text-gray-700 w-32 pt-2">
+                                            수강기간
+                                        </label>
+                                        <div className="flex-1">
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <SimpleSelect
+                                                        value={accessPeriodType}
+                                                        onChange={(e) => setAccessPeriodType(e.target.value as 'days' | 'dates')}
                                                         wrapperClassName="w-40"
-                                                        className="text-right"
-                                                        suffix="원"
-                                                    />
-                                                    {price > 0 && discountPrice > 0 && (
-                                                        <span className="text-xs text-brand-600 font-medium">
-                                                            실제 참가비: {(price - discountPrice).toLocaleString()}원 ({Math.round((discountPrice / price) * 100)}% 할인)
-                                                        </span>
+                                                        className="h-9"
+                                                    >
+                                                        <option value="days">등록일로 부터</option>
+                                                        <option value="dates">직접 입력</option>
+                                                    </SimpleSelect>
+                                                    {accessPeriodType === 'days' ? (
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={accessPeriod}
+                                                            onChange={(e) => setAccessPeriod(parseInt(e.target.value) || 0)}
+                                                            wrapperClassName="w-20"
+                                                            className="text-right h-9"
+                                                            suffix="일"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                type="date"
+                                                                value={accessStartDate}
+                                                                onChange={(e) => setAccessStartDate(e.target.value)}
+                                                                className="w-41 h-9"
+                                                            />
+                                                            <span>~</span>
+                                                            <Input
+                                                                type="date"
+                                                                value={accessEndDate}
+                                                                onChange={(e) => setAccessEndDate(e.target.value)}
+                                                                className="w-41 h-9"
+                                                            />
+                                                        </div>
                                                     )}
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-7">
-                                                <label className="text-sm font-medium text-gray-700 w-24">할인 조건</label>
-                                                <Input
-                                                    type="text"
-                                                    value={discountCondition}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountCondition(e.target.value)}
-                                                    placeholder="예: 특정 쿠폰 코드 소지자, 제휴 단체 회원 등"
-                                                    className="flex-1"
-                                                />
+                                                {errors.accessPeriod && (
+                                                    <p className="text-xs text-red-600">{errors.accessPeriod}</p>
+                                                )}
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
+                                    </div>
+
+                                    <div className="border-t border-gray-200"></div>
+
+                                    {/* 참가비 */}
+                                    <div className="flex items-start gap-4">
+                                        <label className="text-sm font-medium text-gray-700 w-32 pt-2">
+                                            참가비
+                                        </label>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    type="number"
+                                                    min={0}
+                                                    value={price}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(parseInt(e.target.value) || 0)}
+                                                    wrapperClassName="w-40"
+                                                    className="text-right"
+                                                    suffix="원"
+                                                />
+                                                <span className="text-sm text-gray-500">참가비 무료는 0을 입력하세요.</span>
+                                            </div>
+                                            {errors.price && (
+                                                <p className="text-sm text-red-600 ml-2">{errors.price}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-gray-200"></div>
+
+                                    {/* 할인 설정 */}
+                                    <div className="flex items-start gap-4">
+                                        <label className="text-sm font-medium text-gray-700 w-32 pt-2">
+                                            할인 설정
+                                        </label>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <SimpleSelect
+                                                    value={discountType}
+                                                    onChange={(e) => setDiscountType(e.target.value as any)}
+                                                    wrapperClassName="w-40"
+                                                >
+                                                    <option value="none">할인 없음</option>
+                                                    <option value="event">이벤트 할인</option>
+                                                </SimpleSelect>
+                                            </div>
+                                            {discountType !== 'none' && (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-4">
+                                                        <label className="text-sm font-medium text-gray-700 w-24">할인가 입력</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                value={discountPrice}
+                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountPrice(parseInt(e.target.value) || 0)}
+                                                                wrapperClassName="w-40"
+                                                                className="text-right"
+                                                                suffix="원"
+                                                            />
+                                                            {price > 0 && discountPrice > 0 && (
+                                                                <span className="text-xs text-brand-600 font-medium">
+                                                                    실제 참가비: {(price - discountPrice).toLocaleString()}원 ({Math.round((discountPrice / price) * 100)}% 할인)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-7">
+                                                        <label className="text-sm font-medium text-gray-700 w-24">할인 조건</label>
+                                                        <Input
+                                                            type="text"
+                                                            value={discountCondition}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountCondition(e.target.value)}
+                                                            placeholder="예: 특정 쿠폰 코드 소지자, 제휴 단체 회원 등"
+                                                            className="flex-1"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </>
                     ) : (
                         <>

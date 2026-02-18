@@ -12,23 +12,12 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const ITEMS_PER_PAGE = 10;
 
-type SortKey = 'orderCount' | 'orgOrderAmount' | 'openClassCount' | 'cumulativePayment' | 'totalSales' | 'createdDate';
+type SortKey = 'createdDate';
 
 function getSortValue(item: ClassItem, key: SortKey): number | string {
-    const orderCount = (item as ClassItem & { orderCount?: number }).orderCount ?? item.currentParticipants ?? 0;
-    const orgOrderAmount = (item as ClassItem & { organizationOrderAmount?: number }).organizationOrderAmount ?? 0;
-    const openClassCount = (item as ClassItem & { openClassCount?: number }).openClassCount ?? 0;
-    const unitPrice = item.discountPrice ?? item.price ?? 0;
-    const cumulativePayment = (item as ClassItem & { cumulativePayment?: number }).cumulativePayment ?? (unitPrice * (item.currentParticipants ?? 0));
-    const totalSales = (item as ClassItem & { totalSales?: number }).totalSales ?? cumulativePayment;
     switch (key) {
-        case 'orderCount': return orderCount;
-        case 'orgOrderAmount': return orgOrderAmount;
-        case 'openClassCount': return openClassCount;
-        case 'cumulativePayment': return cumulativePayment;
-        case 'totalSales': return totalSales;
         case 'createdDate': return item.createdDate ?? '';
-        default: return 0;
+        default: return '';
     }
 }
 
@@ -55,6 +44,8 @@ export default function ProductManagement(): React.ReactElement {
     // Filters state
     const [searchTerm, setSearchTerm] = useState('');
     const [activeStatusFilter, setActiveStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [productTypeFilter, setProductTypeFilter] = useState<string>('all');
+    const [salesTypeFilter, setSalesTypeFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<SortKey>('createdDate');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [currentPage, setCurrentPage] = useState(1);
@@ -68,9 +59,13 @@ export default function ProductManagement(): React.ReactElement {
                 activeStatusFilter === 'all' ||
                 (activeStatusFilter === 'active' && item.isActive !== false) ||
                 (activeStatusFilter === 'inactive' && item.isActive === false);
-            return matchesSearch && matchesActive;
+            const productType = (item as ClassItem & { productType?: string }).productType;
+            const matchesProductType = productTypeFilter === 'all' || productType === productTypeFilter;
+            const salesType = (item as ClassItem & { salesType?: string }).salesType;
+            const matchesSalesType = salesTypeFilter === 'all' || salesType === salesTypeFilter;
+            return matchesSearch && matchesActive && matchesProductType && matchesSalesType;
         });
-    }, [items, searchTerm, activeStatusFilter]);
+    }, [items, searchTerm, activeStatusFilter, productTypeFilter, salesTypeFilter]);
 
     // Sort logic
     const sortedData = useMemo(() => {
@@ -93,7 +88,7 @@ export default function ProductManagement(): React.ReactElement {
     // Reset pagination when filters/sort change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, activeStatusFilter, sortBy, sortDirection]);
+    }, [searchTerm, activeStatusFilter, productTypeFilter, salesTypeFilter, sortBy, sortDirection]);
 
     // Pagination logic
     const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
@@ -163,6 +158,25 @@ export default function ProductManagement(): React.ReactElement {
                         rightContent={
                             <FilterGroup>
                                 <SimpleSelect
+                                    value={productTypeFilter}
+                                    onChange={(e) => setProductTypeFilter(e.target.value)}
+                                    wrapperClassName="w-32"
+                                >
+                                    <option value="all">전체 유형</option>
+                                    <option value="콘텐츠">콘텐츠</option>
+                                    <option value="상품">상품</option>
+                                    <option value="서비스">서비스</option>
+                                </SimpleSelect>
+                                <SimpleSelect
+                                    value={salesTypeFilter}
+                                    onChange={(e) => setSalesTypeFilter(e.target.value)}
+                                    wrapperClassName="w-32"
+                                >
+                                    <option value="all">전체 판매</option>
+                                    <option value="online">온라인 판매</option>
+                                    <option value="agency">기관판매</option>
+                                </SimpleSelect>
+                                <SimpleSelect
                                     value={activeStatusFilter}
                                     onChange={(e) => setActiveStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
                                     wrapperClassName="w-32"
@@ -186,11 +200,11 @@ export default function ProductManagement(): React.ReactElement {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>프로덕트명</TableHead>
-                                <SortableHead sortKey="orderCount" className="w-[110px]">기관주문건수</SortableHead>
-                                <SortableHead sortKey="orgOrderAmount" className="w-[120px]">기관주문금액</SortableHead>
-                                <SortableHead sortKey="openClassCount" className="w-[130px]">온라인 주문건수</SortableHead>
-                                <SortableHead sortKey="cumulativePayment" className="w-[140px]">온라인 결제금액</SortableHead>
-                                <SortableHead sortKey="totalSales" className="w-[120px]">판매합계</SortableHead>
+                                <TableHead className="text-center w-[100px]">프로덕트 유형</TableHead>
+                                <TableHead className="text-center w-[90px]">판매유형</TableHead>
+                                <TableHead className="text-center w-[180px]">기관명</TableHead>
+                                <TableHead className="text-center w-[180px]">가격/판매수익(원)</TableHead>
+                                <TableHead className="text-center w-[180px]">가격/판매수익(USD)</TableHead>
                                 <SortableHead sortKey="createdDate" className="w-[120px]">등록일</SortableHead>
                                 <TableHead className="text-center w-[90px]">활성여부</TableHead>
                                 <TableHead className="text-center w-[50px]">관리</TableHead>
@@ -198,15 +212,7 @@ export default function ProductManagement(): React.ReactElement {
                         </TableHeader>
                         <TableBody>
                             {paginatedData.length > 0 ? (
-                                paginatedData.map((item) => {
-                                    const orderCount = (item as ClassItem & { orderCount?: number }).orderCount ?? item.currentParticipants ?? 0;
-                                    const orgOrderAmount = (item as ClassItem & { organizationOrderAmount?: number }).organizationOrderAmount ?? 0;
-                                    const openClassCount = (item as ClassItem & { openClassCount?: number }).openClassCount ?? 0;
-                                    const unitPrice = item.discountPrice ?? item.price ?? 0;
-                                    const cumulativePayment = (item as ClassItem & { cumulativePayment?: number }).cumulativePayment ?? (unitPrice * (item.currentParticipants ?? 0));
-                                    const totalSales = (item as ClassItem & { totalSales?: number }).totalSales ?? cumulativePayment;
-
-                                    return (
+                                paginatedData.map((item) => (
                                         <TableRow key={item.id} className="hover:bg-gray-50 transition-colors text-sm">
                                             <TableCell>
                                                 <div className="cursor-pointer group" onClick={() => navigate(`/admin/product/detail/${item.id}`)}>
@@ -216,20 +222,37 @@ export default function ProductManagement(): React.ReactElement {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-center font-medium text-gray-900">
-                                                {orderCount.toLocaleString()}
+                                            <TableCell className="text-center text-gray-600">
+                                                {(item as ClassItem & { productType?: string }).productType ?? '-'}
                                             </TableCell>
-                                            <TableCell className="text-center font-medium text-gray-900">
-                                                {orgOrderAmount > 0 ? `${orgOrderAmount.toLocaleString()}원` : '-'}
+                                            <TableCell className="text-center text-gray-600">
+                                                {(() => {
+                                                    const st = (item as ClassItem & { salesType?: string }).salesType;
+                                                    return st === 'online' ? '온라인 판매' : st === 'agency' ? '기관판매' : '-';
+                                                })()}
                                             </TableCell>
-                                            <TableCell className="text-center font-medium text-gray-900">
-                                                {openClassCount.toLocaleString()}
+                                            <TableCell className="text-center text-gray-600">
+                                                {item.organizationName ?? '-'}
                                             </TableCell>
-                                            <TableCell className="text-center font-medium text-gray-900">
-                                                {cumulativePayment > 0 ? `${cumulativePayment.toLocaleString()}원` : '-'}
+                                            <TableCell className="text-center text-gray-900">
+                                                {(() => {
+                                                    const priceKrw = item.discountPrice ?? item.price ?? 0;
+                                                    const qty = item.currentParticipants ?? 0;
+                                                    const revenueKrw = priceKrw * qty;
+                                                    const priceStr = priceKrw > 0 ? priceKrw.toLocaleString() : '-';
+                                                    const revenueStr = revenueKrw > 0 ? revenueKrw.toLocaleString() : '-';
+                                                    return `${priceStr} / ${revenueStr}`;
+                                                })()}
                                             </TableCell>
-                                            <TableCell className="text-center font-medium text-gray-900">
-                                                {totalSales > 0 ? `${totalSales.toLocaleString()}원` : '-'}
+                                            <TableCell className="text-center text-gray-900">
+                                                {(() => {
+                                                    const priceUsd = (item as ClassItem & { priceUsd?: number }).priceUsd ?? 0;
+                                                    const qty = item.currentParticipants ?? 0;
+                                                    const revenueUsd = priceUsd * qty;
+                                                    const priceStr = priceUsd > 0 ? priceUsd.toLocaleString() : '-';
+                                                    const revenueStr = revenueUsd > 0 ? revenueUsd.toLocaleString() : '-';
+                                                    return `${priceStr} / ${revenueStr}`;
+                                                })()}
                                             </TableCell>
                                             <TableCell className="text-center text-gray-600">
                                                 {item.createdDate ?? '-'}
@@ -260,8 +283,7 @@ export default function ProductManagement(): React.ReactElement {
                                                 </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
-                                    );
-                                })
+                                ))
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={9} className="h-24 text-center text-gray-500">

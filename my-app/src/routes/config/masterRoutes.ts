@@ -11,6 +11,8 @@ import { RouteConfig } from './adminRoutes';
 
 // Lazy load Master pages
 const MasterDashboard = lazy(() => import('../../pages/dashboard/MasterDashboard'));
+const ClassCreateSelect = lazy(() => import('../../pages/class/ClassCreateSelect'));
+const MyClassCreatePage = lazy(() => import('../../pages/class/MyClassCreatePage'));
 const MyClassCreate = lazy(() => import('../../pages/class/MyClassCreate'));
 const MyClassManagement = lazy(() => import('../../pages/class/MyClassManagement'));
 const OpenClassDetail = lazy(() => import('../../pages/class/OpenClassDetail'));
@@ -18,6 +20,7 @@ const MyClassList = lazy(() => import('../../pages/class/MyClassList'));
 const MyClassDetail = lazy(() => import('../../pages/class/MyClassDetail'));
 const ProductManagement = lazy(() => import('../../pages/product/ProductManagement'));
 const ProductCreate = lazy(() => import('../../pages/product/ProductCreate'));
+const OpenClassCreatePage = lazy(() => import('../../pages/class/OpenClassCreatePage'));
 const OpenClassCreate = lazy(() => import('../../pages/class/OpenClassCreate'));
 const ProductEdit = lazy(() => import('../../pages/product/ProductEdit'));
 const MyClassEdit = lazy(() => import('../../pages/class/MyClassEdit'));
@@ -88,7 +91,7 @@ export const masterRoutes: RouteConfig[] = [
   },
   {
     path: 'open-class/create',
-    component: OpenClassCreate,
+    component: OpenClassCreatePage,
   },
   {
     path: 'open-class/:id',
@@ -99,8 +102,12 @@ export const masterRoutes: RouteConfig[] = [
     component: ProductEdit,
   },
   {
+    path: 'class/create/organization',
+    component: MyClassCreatePage,
+  },
+  {
     path: 'class/create',
-    component: MyClassCreate,
+    component: ClassCreateSelect,
   },
   {
     path: 'class/edit/:id',

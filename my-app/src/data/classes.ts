@@ -74,7 +74,8 @@ export interface ClassItem {
     organizationId?: number; // 교육기관 ID (판매가능일 때)
     organizationName?: string; // 교육기관명 (표시용)
     price?: number; // 수강료
-    discountPrice?: number; // 할인가
+    discountPrice?: number; // 할인 금액 (할인 적용 시 실제 가격 = price - discountPrice)
+    discountType?: 'none' | 'event' | 'hospital_association'; // 할인 유형
     // UX-design 추가 필드 (하위 호환성)
     organizationLogo?: string; // 기관 로고
     discountInfo?: string; // 할인 정보
@@ -94,6 +95,9 @@ export interface ClassItem {
     isRecommended?: boolean; // 추천 클래스
     isActive?: boolean; // 활성 상태
     classType?: string; // 클래스 타입 (오픈/마이 등)
+    productType?: '콘텐츠' | '상품' | '서비스'; // 프로덕트 유형
+    /** 판매유형: online(온라인 판매) | agency(기관판매). 프로덕트 정보(가격·온라인URL·교육장소 등)와 일치해야 함 */
+    salesType?: 'online' | 'agency';
     enrollmentType?: 'scheduled' | 'ongoing'; // 모집 타입
     courseStartDate?: string; // 코스 시작일
     courseEndDate?: string; // 코스 종료일

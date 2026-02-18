@@ -15,6 +15,8 @@ export interface Organization {
     registeredDate?: string;
     /** 제휴기관 여부 */
     isPartner?: boolean;
+    /** 대한병원협회 정회원 여부 (할인가 적용 조건) */
+    isKhaRegularMember?: boolean;
     status: 'active' | 'inactive' | string;
     licenseType?: string;
     licenseCount?: number;

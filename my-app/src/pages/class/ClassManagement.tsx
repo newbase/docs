@@ -144,9 +144,9 @@ export default function ClassManagement(): React.ReactElement {
                             <Plus size={16} className="mr-2" />
                             오픈클래스 생성
                         </Button>
-                        <Button variant="lightdark" size="md" onClick={() => navigate(ROUTES.ADMIN.CLASS_CREATE)}>
+                        <Button variant="lightdark" size="md" onClick={() => navigate(ROUTES.ADMIN.CLASS_CREATE_ORGANIZATION)}>
                             <Plus size={16} className="mr-2" />
-                            기관클래스 생성
+                            마이클래스 생성
                         </Button>
                     </div>
                 }

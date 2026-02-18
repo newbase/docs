@@ -29,6 +29,8 @@ interface FormData {
     countryCallingCodeId: number | null;
     phoneNumber: string;
     email: string;
+    isPartner: boolean;
+    commissionRate: number;
 }
 
 export default function EditOrganizationModal({ 
@@ -47,7 +49,9 @@ export default function EditOrganizationModal({
         department: '',
         countryCallingCodeId: null,
         phoneNumber: '',
-        email: ''
+        email: '',
+        isPartner: false,
+        commissionRate: 0
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -98,7 +102,9 @@ export default function EditOrganizationModal({
                 department: organizationDetailData.department || '', // 엄격하게: API에서 가져온 값 사용
                 countryCallingCodeId: organizationDetailData.countryCallingCode?.id || null,
                 phoneNumber: organizationDetailData.phoneNumber || '',
-                email: organizationDetailData.email || ''
+                email: organizationDetailData.email || '',
+                isPartner: organizationDetailData.isPartner ?? false,
+                commissionRate: organizationDetailData.commissionRate ?? 0
             };
             setFormData(initialData);
             // 엄격하게: 원본 데이터 저장 (초기화 시 사용)
@@ -122,7 +128,9 @@ export default function EditOrganizationModal({
                 department: organization.department || '', // 목록 데이터에서 가져오기 (없으면 빈 문자열)
                 countryCallingCodeId: null,
                 phoneNumber: organization.phone || '',
-                email: organization.email || ''
+                email: organization.email || '',
+                isPartner: (organization as any).isPartner ?? false,
+                commissionRate: (organization as any).commissionRate ?? 0
             };
             setFormData(initialData);
             // 엄격하게: 원본 데이터 저장 (초기화 시 사용)
@@ -236,6 +244,8 @@ export default function EditOrganizationModal({
                 countryCallingCodeId: formData.countryCallingCodeId!,
                 phoneNumber: formData.phoneNumber.trim() || undefined,
                 email: formData.email.trim() || undefined,
+                isPartner: formData.isPartner,
+                commissionRate: formData.isPartner && formData.commissionRate > 0 ? formData.commissionRate : undefined,
             };
 
             await updateOrganizationMutation.mutateAsync({
@@ -271,7 +281,9 @@ export default function EditOrganizationModal({
                 department: organizationDetailData.department || '',
                 countryCallingCodeId: organizationDetailData.countryCallingCode?.id || null,
                 phoneNumber: organizationDetailData.phoneNumber || '',
-                email: organizationDetailData.email || ''
+                email: organizationDetailData.email || '',
+                isPartner: organizationDetailData.isPartner ?? false,
+                commissionRate: organizationDetailData.commissionRate ?? 0
             };
             setFormData(resetData);
         } else if (organization) {
@@ -293,7 +305,9 @@ export default function EditOrganizationModal({
                 department: organization.department || '',
                 countryCallingCodeId: orgAny.countryCallingCode?.id || null,
                 phoneNumber: organization.phone || '',
-                email: organization.email || ''
+                email: organization.email || '',
+                isPartner: (organization as any).isPartner ?? false,
+                commissionRate: (organization as any).commissionRate ?? 0
             };
             setFormData(resetData);
         }
@@ -575,6 +589,41 @@ export default function EditOrganizationModal({
                             <span className="mt-2 text-sm text-red-500 block">{errors.email}</span>
                         )}
                     </div>
+                </div>
+
+                {/* 제휴기관 여부 */}
+                <div className="mb-6">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={formData.isPartner}
+                                onChange={(e) => setFormData(prev => ({ ...prev, isPartner: e.target.checked }))}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">제휴기관</span>
+                        </label>
+                        {formData.isPartner && (
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm text-gray-600">수수료율</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step={0.1}
+                                    value={formData.commissionRate || ''}
+                                    onChange={(e) => setFormData(prev => ({
+                                        ...prev,
+                                        commissionRate: parseFloat(e.target.value) || 0
+                                    }))}
+                                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0"
+                                />
+                                <span className="text-sm text-gray-500">%</span>
+                            </div>
+                        )}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">체크 시 해당 기관이 제휴기관으로 등록됩니다.</p>
                 </div>
             </form>
 

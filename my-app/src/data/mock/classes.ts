@@ -1,8 +1,10 @@
 /**
  * 목업 클래스 데이터
  * 실제 API 연동 시 data/queries/useClasses.ts로 대체
+ * salesType은 프로덕트 정보(가격·온라인URL·교육장소 등)와 일치해야 함 → utils/productSalesType.ts 참고
  */
 import { ClassItem, CurriculumItem } from '../classes';
+import { isSalesTypeConsistentWithProduct } from '../../utils/productSalesType';
 
 export const mockClassesData: Record<string, ClassItem> = {
     '001': {
@@ -29,10 +31,15 @@ export const mockClassesData: Record<string, ClassItem> = {
         creatorId: 'MasterUser01',
         createdDate: '2025-10-01',
         isForSale: true,
+        isActive: true,
         classType: '오픈',
+        productType: '콘텐츠',
+        salesType: 'online',
         category: 'new-nurse',
         organizationName: '서울대학교병원',
         price: 99000,
+        discountPrice: 10000,
+        discountType: 'hospital_association',
         isNew: true,
         isRecommended: true,
         educationVenue: '서울대학교병원 시뮬레이션센터',
@@ -101,6 +108,7 @@ export const mockClassesData: Record<string, ClassItem> = {
         patientType: '성인, 노인, 소아, 임산부',
         participationPeriod: { startDate: '2025-06-01', endDate: '2026-12-31' },
         classType: '오픈',
+        productType: '콘텐츠',
         category: 'nursing-college',
         organizationName: '연세의료원',
         price: 0,
@@ -118,7 +126,9 @@ export const mockClassesData: Record<string, ClassItem> = {
         currentParticipants: 18,
         completionRate: 92,
         creatorId: 'MasterUser02',
-        createdDate: '2025-10-05'
+        createdDate: '2025-10-05',
+        isActive: true,
+        salesType: 'agency'
     },
     '003': {
         id: '003',
@@ -128,6 +138,9 @@ export const mockClassesData: Record<string, ClassItem> = {
         description: '흉통, 호흡곤란, 쇼크 등 환자증상과 상황을 파악하고 신속하고 적합한 의사결정 역량 훈련',
         duration: '10~20분',
         patientType: '다양',
+        productType: '콘텐츠',
+        salesType: 'agency',
+        isActive: true,
         curriculum: [
             { id: 31, code: 'MD001', name: '흉통', duration: '15분', platform: 'VR' },
             { id: 32, code: 'MD002', name: '호흡곤란', duration: '18분', platform: 'VR', isNew: true },
@@ -140,6 +153,8 @@ export const mockClassesData: Record<string, ClassItem> = {
         createdDate: '2025-10-15'
     },
     '004': {
+        isActive: true,
+        salesType: 'online',
         id: '004',
         type: 'mb',
         title: '필수의료 시뮬레이션',
@@ -148,6 +163,7 @@ export const mockClassesData: Record<string, ClassItem> = {
         duration: '10~20분',
         participationPeriod: { startDate: '2025-08-01', endDate: '2026-12-31' },
         classType: '오픈',
+        productType: '서비스',
         category: 'disaster-emergency',
         organizationName: '삼성서울병원',
         price: 49000,
@@ -172,6 +188,9 @@ export const mockClassesData: Record<string, ClassItem> = {
         title: '신경계사정 시뮬레이션',
         subtitle: '신경계사정 시뮬레이션',
         description: '신경계사정 시뮬레이션',
+        productType: '콘텐츠',
+        salesType: 'agency',
+        isActive: true,
         curriculum: [
             { id: 51, code: 'SC001', name: '신경계사정', duration: '7분', platform: 'VR' },
         ],
@@ -181,11 +200,13 @@ export const mockClassesData: Record<string, ClassItem> = {
         creatorId: 'NewMaster',
         createdDate: '2025-10-24'
     },
-    // Mock Data for Pagination Testing
+    // Mock Data for Pagination Testing (salesType: 프로덕트 정보와 일치하도록 설정)
     '006': {
         id: '006', type: 'ls', title: '응급 처치 기초', subtitle: '기본 응급 처치', description: '심폐소생술 및 기본 응급 처치',
         participationPeriod: { startDate: '2025-01-01', endDate: '2026-12-31' },
         classType: '오픈',
+        productType: '상품',
+        salesType: 'agency',
         category: 'disaster-emergency',
         organizationName: '서울아산병원',
         price: 79000,
@@ -199,6 +220,8 @@ export const mockClassesData: Record<string, ClassItem> = {
         id: '007', type: 'ao', title: '중환자 간호', subtitle: 'ICU 실습', description: '중환자실 환경에서의 간호 실습',
         participationPeriod: { startDate: '2025-03-01', endDate: '2026-12-31' },
         classType: '오픈',
+        productType: '콘텐츠',
+        salesType: 'agency',
         category: 'new-nurse',
         organizationName: '세브란스병원',
         price: 0,
@@ -212,6 +235,8 @@ export const mockClassesData: Record<string, ClassItem> = {
         id: '008', type: 'md', title: '감염 관리', subtitle: '병원 내 감염 예방', description: '표준 주의 및 격리 주의 지침',
         participationPeriod: { startDate: '2025-04-01', endDate: '2026-12-31' },
         classType: '오픈',
+        productType: '콘텐츠',
+        salesType: 'online',
         category: 'nursing-college',
         organizationName: '고려대학교병원',
         price: 59000,
@@ -281,3 +306,17 @@ export const mockClassesData: Record<string, ClassItem> = {
         maxParticipants: 10, currentParticipants: 10, completionRate: 100, creatorId: 'Master01', createdDate: '2024-12-25', password: '1234'
     }
 };
+
+// 개발 시 salesType과 프로덕트 정보 일치 여부 검사 (콘솔 경고)
+if (process.env.NODE_ENV === 'development') {
+    const inconsistent: string[] = [];
+    Object.entries(mockClassesData).forEach(([id, item]) => {
+        const { consistent, expected, actual } = isSalesTypeConsistentWithProduct(item as ClassItem & { salesType?: string });
+        if (!consistent && expected != null && actual !== undefined) {
+            inconsistent.push(`${id}: expected salesType "${expected}" (from product fields), got "${actual}"`);
+        }
+    });
+    if (inconsistent.length > 0) {
+        console.warn('[mock/classes] salesType이 프로덕트 정보와 일치하지 않습니다:', inconsistent);
+    }
+}

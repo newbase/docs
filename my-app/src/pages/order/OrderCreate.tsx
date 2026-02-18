@@ -13,6 +13,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 interface OrganizationOption {
     id: number;
     title: string;
+    isKhaRegularMember?: boolean;
 }
 
 interface AgencyOption {
@@ -43,6 +44,7 @@ export default function OrderCreate(): React.ReactElement {
     const [suggestions, setSuggestions] = useState<OrganizationOption[]>([]);
     const [selectedOrgId, setSelectedOrgId] = useState<string>(prefilledOrgId || '');
     const [selectedOrgName, setSelectedOrgName] = useState<string>('');
+    const [selectedOrg, setSelectedOrg] = useState<OrganizationOption | null>(null);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState<boolean>(false);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,7 +57,7 @@ export default function OrderCreate(): React.ReactElement {
     const [isAgencySuggestionsOpen, setIsAgencySuggestionsOpen] = useState<boolean>(false);
     const agencySuggestionsRef = useRef<HTMLDivElement>(null);
 
-    const [productType, setProductType] = useState<'DEFAULT' | 'SUBSCRIPTION' | 'PRODUCT_EQUIPMENT' | 'CUSTOM_SERVICE' | 'OPEN_CLASS'>('DEFAULT');
+    const [productType, setProductType] = useState<'DEFAULT' | '콘텐츠' | '상품' | '서비스'>('DEFAULT');
     const [selectedProductId, setSelectedProductId] = useState<string>('');
     const [licenseType, setLicenseType] = useState<'USER' | 'DEVICE'>('USER');
     const [plan, setPlan] = useState<'BASIC' | 'PRO'>('BASIC');
@@ -84,18 +86,14 @@ export default function OrderCreate(): React.ReactElement {
         : [];
 
     const defaultProductOptionsByType: Record<string, ProductOption[]> = {
-        SUBSCRIPTION: [
+        콘텐츠: [
             { id: 'basic', name: 'Basic' },
             { id: 'pro', name: 'Pro' },
             { id: 'enterprise', name: 'Enterprise' },
-        ],
-        PRODUCT_EQUIPMENT: [
             { id: 'default', name: '기본' },
         ],
-        CUSTOM_SERVICE: [
-            { id: 'default', name: '기본' },
-        ],
-        OPEN_CLASS: [],
+        상품: [{ id: 'default', name: '기본' }],
+        서비스: [{ id: 'default', name: '기본' }],
     };
 
     const getOptionsForProduct = (productId: string): ProductOption[] => {
@@ -107,6 +105,21 @@ export default function OrderCreate(): React.ReactElement {
         }
         return defaultProductOptionsByType[productType] ?? [];
     };
+
+    // 선택 기관 변경 시 대한병원협회 할인가 자동 적용/해제
+    useEffect(() => {
+        const isKhaMember = selectedOrg?.isKhaRegularMember ?? false;
+        setOrderItemRows(prev => prev.map(r => {
+            if (!r.productId) return r;
+            const product = productList.find((p: any) => p.id?.toString() === r.productId) as any;
+            if (!product || product.discountType !== 'hospital_association') return r;
+            const fullPrice = product.price ?? 0;
+            const discountAmount = product.discountPrice ?? 0;
+            const discountedPrice = Math.max(0, fullPrice - discountAmount);
+            const targetPrice = isKhaMember && discountAmount > 0 ? discountedPrice : fullPrice;
+            return r.unitPrice === targetPrice ? r : { ...r, unitPrice: targetPrice };
+        }));
+    }, [selectedOrg?.isKhaRegularMember, selectedOrg?.id]);
 
     // prefilledOrgId가 있으면 해당 주문자(기관)명 로드
     useEffect(() => {
@@ -122,6 +135,11 @@ export default function OrderCreate(): React.ReactElement {
                 if (org) {
                     setSelectedOrgName(org.title);
                     setOrgSearchQuery(org.title);
+                    setSelectedOrg({
+                        id: org.organizationId,
+                        title: org.title,
+                        isKhaRegularMember: (org as any).isKhaRegularMember ?? false
+                    });
                 }
             } catch (e) {
                 console.error('Failed to load prefilled organization', e);
@@ -146,7 +164,11 @@ export default function OrderCreate(): React.ReactElement {
                 search: query.trim()
             });
             const list = response?.organizationList ?? [];
-            setSuggestions(list.map(org => ({ id: org.organizationId, title: org.title })));
+            setSuggestions(list.map(org => ({
+                id: org.organizationId,
+                title: org.title,
+                isKhaRegularMember: (org as any).isKhaRegularMember ?? false
+            })));
             setIsSuggestionsOpen(true);
         } catch (e) {
             console.error('Failed to search organizations', e);
@@ -183,6 +205,7 @@ export default function OrderCreate(): React.ReactElement {
     const handleSelectOrganization = (org: OrganizationOption) => {
         setSelectedOrgId(org.id.toString());
         setSelectedOrgName(org.title);
+        setSelectedOrg(org);
         setOrgSearchQuery(org.title);
         setIsSuggestionsOpen(false);
     };
@@ -192,6 +215,7 @@ export default function OrderCreate(): React.ReactElement {
         setOrgSearchQuery(value);
         setSelectedOrgId('');
         setSelectedOrgName('');
+        setSelectedOrg(null);
     };
 
     const handleAgencyInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,7 +245,7 @@ export default function OrderCreate(): React.ReactElement {
                     (row) =>
                         !row.productId ||
                         row.quantity < 1 ||
-                        ((productType === 'SUBSCRIPTION' || productType === 'CUSTOM_SERVICE' || productType === 'OPEN_CLASS') && row.period < 1)
+                        ((productType === '콘텐츠' || productType === '서비스') && row.period < 1)
                 );
                 if (rowHasError) newErrors.items = '각 품목의 프로덕트, 수량, 기간을 확인해주세요.';
             }
@@ -371,31 +395,30 @@ export default function OrderCreate(): React.ReactElement {
 
                     <div className="border-t border-gray-200" />
 
-                    {/* 주문유형 */}
+                    {/* 프로덕트 유형 */}
                     <div className="flex items-start gap-4">
-                        <label className="text-sm font-medium text-gray-700 w-20 pt-2">주문유형</label>
+                        <label className="text-sm font-medium text-gray-700 w-20 pt-2">프로덕트 유형</label>
                         <div className="flex flex-1 flex-wrap items-center justify-start gap-4">
                             <SimpleSelect
                                 value={productType}
                                 onChange={(e) => {
-                                    setProductType(e.target.value as 'DEFAULT' | 'SUBSCRIPTION' | 'PRODUCT_EQUIPMENT' | 'CUSTOM_SERVICE' | 'OPEN_CLASS');
+                                    setProductType(e.target.value as 'DEFAULT' | '콘텐츠' | '상품' | '서비스');
                                     setSelectedProductId('');
                                     setOrderItemRows([]);
                                 }}
                                 wrapperClassName="w-40"
                             >
                                 <option value="DEFAULT">선택</option>
-                                <option value="SUBSCRIPTION">구독</option>
-                                <option value="PRODUCT_EQUIPMENT">장비/물품</option>
-                                <option value="CUSTOM_SERVICE">커스텀 서비스</option>
-                                <option value="OPEN_CLASS">오픈클래스</option>
+                                <option value="콘텐츠">콘텐츠</option>
+                                <option value="상품">상품</option>
+                                <option value="서비스">서비스</option>
                             </SimpleSelect>
                             <div className="flex items-center gap-2">
                                 <Button
                                     type="button"
                                     variant="lightdark"
                                     size="sm"
-                                    onClick={() => setOrderItemRows(prev => [...prev, { id: `item-${Date.now()}`, productId: '', optionId: productType === 'SUBSCRIPTION' ? 'basic' : productType === 'OPEN_CLASS' ? '' : 'default', period: (productType === 'SUBSCRIPTION' || productType === 'CUSTOM_SERVICE') ? 12 : productType === 'OPEN_CLASS' ? 30 : 0, periodUnit: productType === 'OPEN_CLASS' ? 'DAY' : 'MONTH', quantity: 1, unitPrice: 0, costPrice: 0 }])}
+                                    onClick={() => setOrderItemRows(prev => [...prev, { id: `item-${Date.now()}`, productId: '', optionId: productType === '콘텐츠' ? 'basic' : 'default', period: (productType === '콘텐츠' || productType === '서비스') ? 12 : 0, periodUnit: 'MONTH', quantity: 1, unitPrice: 0, costPrice: 0 }])}
                                 >
                                     <Plus size={16} />
                                     품목 추가
@@ -443,7 +466,21 @@ export default function OrderCreate(): React.ReactElement {
                                                     <label className="text-sm font-medium text-gray-700 block mb-1">프로덕트</label>
                                                     <SimpleSelect
                                                         value={row.productId}
-                                                        onChange={(e) => setOrderItemRows(prev => prev.map(r => r.id === row.id ? { ...r, productId: e.target.value } : r))}
+                                                        onChange={(e) => {
+                                                            const newProductId = e.target.value;
+                                                            const product = productList.find((p: any) => p.id?.toString() === newProductId) as any;
+                                                            let newUnitPrice = 0;
+                                                            if (product?.price != null) {
+                                                                const isKhaMember = selectedOrg?.isKhaRegularMember ?? false;
+                                                                const hasHospitalDiscount = product.discountType === 'hospital_association' && (product.discountPrice ?? 0) > 0;
+                                                                if (isKhaMember && hasHospitalDiscount) {
+                                                                    newUnitPrice = Math.max(0, (product.price ?? 0) - (product.discountPrice ?? 0));
+                                                                } else {
+                                                                    newUnitPrice = product.price ?? 0;
+                                                                }
+                                                            }
+                                                            setOrderItemRows(prev => prev.map(r => r.id === row.id ? { ...r, productId: newProductId, unitPrice: newUnitPrice } : r));
+                                                        }}
                                                         wrapperClassName="w-full"
                                                     >
                                                         <option value="">프로덕트명 선택</option>
@@ -452,8 +489,8 @@ export default function OrderCreate(): React.ReactElement {
                                                         ))}
                                                     </SimpleSelect>
                                                 </div>
-                                                {/* 구독: 구독플랜 */}
-                                                {productType === 'SUBSCRIPTION' && (
+                                                {/* 콘텐츠: 구독플랜/옵션 */}
+                                                {productType === '콘텐츠' && (
                                                     <div className="min-w-[140px]">
                                                         <label className="text-sm font-medium text-gray-700 block mb-1">구독플랜</label>
                                                         <SimpleSelect
@@ -468,11 +505,11 @@ export default function OrderCreate(): React.ReactElement {
                                                         </SimpleSelect>
                                                     </div>
                                                 )}
-                                                {/* 기간: 구독, 커스텀 서비스, 오픈클래스 */}
-                                                {(productType === 'SUBSCRIPTION' || productType === 'CUSTOM_SERVICE' || productType === 'OPEN_CLASS') && (
+                                                {/* 기간: 콘텐츠, 서비스 */}
+                                                {(productType === '콘텐츠' || productType === '서비스') && (
                                                     <div className="flex items-end gap-1">
                                                         <div>
-                                                            <label className="text-sm font-medium text-gray-700 block mb-1">{productType === 'OPEN_CLASS' ? '초대유효기간' : '기간'}</label>
+                                                            <label className="text-sm font-medium text-gray-700 block mb-1">기간</label>
                                                             <div className="flex items-center gap-1">
                                                                 <Input
                                                                     type="number"
@@ -513,7 +550,7 @@ export default function OrderCreate(): React.ReactElement {
                                                         className="text-right"
                                                     />
                                                 </div>
-                                                {productType === 'PRODUCT_EQUIPMENT' && (
+                                                {productType === '상품' && (
                                                     <div>
                                                         <label className="text-sm font-medium text-gray-700 block mb-1">원가</label>
                                                         <Input
@@ -555,7 +592,7 @@ export default function OrderCreate(): React.ReactElement {
                                             const totalSales = orderItemRows.reduce((s, r) => s + r.quantity * r.unitPrice, 0);
                                             const supplyValue = vatRate > 0 ? Math.round(totalSales / (1 + vatRate / 100)) : totalSales;
                                             const vatAmount = totalSales - supplyValue;
-                                            const totalCost = productType === 'PRODUCT_EQUIPMENT'
+                                            const totalCost = productType === '상품'
                                                 ? orderItemRows.reduce((s, r) => s + r.quantity * (r.costPrice ?? 0), 0)
                                                 : totalCostDirectInput;
                                             const totalProfit = supplyValue - totalCost;
@@ -576,7 +613,7 @@ export default function OrderCreate(): React.ReactElement {
                                                     </div>
                                                     <div>
                                                         <label className="text-sm font-medium text-gray-700 block mb-1">총 원가</label>
-                                                        {productType === 'PRODUCT_EQUIPMENT' ? (
+                                                        {productType === '상품' ? (
                                                             <Input
                                                                 type="text"
                                                                 value={`${totalCost.toLocaleString()} ${unit}`}

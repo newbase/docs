@@ -82,7 +82,7 @@ export default function MyClassCreate(): React.ReactElement {
     const [country, setCountry] = useState<string>('');
     const [currency, setCurrency] = useState<string>('원');
     const [partnerOrgId, setPartnerOrgId] = useState<string>('none');
-    const [discountType, setDiscountType] = useState<'none' | 'affiliate' | 'event'>('none');
+    const [discountType, setDiscountType] = useState<'none' | 'event'>('none');
     const [affiliateOrg, setAffiliateOrg] = useState('');
     const [discountCondition, setDiscountCondition] = useState('');
 
@@ -116,9 +116,11 @@ export default function MyClassCreate(): React.ReactElement {
     // determine if we still need organizationsData if it's used elsewhere
     // In this file, it seems only used for the selection we are removing.
 
-    // Duplication state
+    // Duplication / 프로덕트 선택 후 전달 state (위저드: 마이클래스 생성 → 기관·기관판매 프로덕트 선택)
     const location = useLocation();
     const duplicateFrom = location.state?.duplicateFrom as ClassItem | undefined;
+    const selectedProduct = location.state?.selectedProduct as ClassItem | undefined;
+    const wizardOrganizationId = location.state?.organizationId as string | undefined;
 
     // Validation state
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -152,77 +154,91 @@ export default function MyClassCreate(): React.ReactElement {
         fetchOrgs();
     }, []);
 
-    // Initialize state if duplicating
+    // Initialize state if duplicating or from selected product (클래스 생성 → 프로덕트 선택 후 이동)
     useEffect(() => {
+        const source = duplicateFrom || selectedProduct;
+        if (!source) return;
+
+        const isCopy = !!duplicateFrom;
+        setClassName(isCopy ? `${source.title} (copy)` : source.title);
+        setDescription(source.description || '');
+
+        if (source.participationPeriod) {
+            setStartDate(source.participationPeriod.startDate);
+            setEndDate(source.participationPeriod.endDate);
+        }
+
+        if (source.maxParticipants) {
+            setMaxParticipants(source.maxParticipants);
+        }
+
         if (duplicateFrom) {
-            setClassName(`${duplicateFrom.title} (copy)`);
-            setDescription(duplicateFrom.description || '');
-
-            if (duplicateFrom.participationPeriod) {
-                setStartDate(duplicateFrom.participationPeriod.startDate);
-                setEndDate(duplicateFrom.participationPeriod.endDate);
-            }
-
-            if (duplicateFrom.maxParticipants) {
-                setMaxParticipants(duplicateFrom.maxParticipants);
-            }
-
             if (duplicateFrom.password !== undefined) {
                 setVisibility(duplicateFrom.password ? 'private' : 'organization');
             }
-
             if ((duplicateFrom as any).isOpenClass !== undefined) {
                 setIsOpenClass((duplicateFrom as any).isOpenClass);
             }
-
             if (duplicateFrom.password) {
                 setPassword(duplicateFrom.password);
             }
-
-            if (duplicateFrom.completionRequirements) {
-                setCompletionRequirements(duplicateFrom.completionRequirements);
-            }
-
-            // Map curriculum items back
-            const initialItems: CurriculumItem[] = (duplicateFrom.curriculum || []).map(item => {
-                const itemId = `copy-${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-                if (item.type === 'video') {
-                    return {
-                        id: itemId,
-                        type: 'video',
-                        data: {
-                            id: item.id.toString(),
-                            title: item.name,
-                            url: '', // Missing in legacy data
-                            duration: item.duration,
-                            author: {
-                                name: item.author || 'Unknown',
-                                type: item.authorType || 'individual'
-                            },
-                            description: ''
-                        } as VideoLecture
-                    };
-                } else {
-                    // Default to scenario
-                    const detail = scenarioDetails[item.id];
-                    return {
-                        id: itemId,
-                        type: 'scenario',
-                        data: detail || {
-                            id: item.id,
-                            title: item.name,
-                            duration: item.duration,
-                            platform: item.platform,
-                            ContributedBy: item.author || 'Medicrew',
-                            // Add other required fields with defaults if detail is missing
-                        } as any
-                    };
-                }
-            });
-            setCurriculumItems(initialItems);
         }
-    }, [duplicateFrom]);
+
+        if (source.completionRequirements) {
+            setCompletionRequirements(source.completionRequirements);
+        }
+
+        if (selectedProduct?.thumbnail) {
+            setCustomThumbnail(selectedProduct.thumbnail);
+        }
+
+        // Map curriculum items back
+        const initialItems: CurriculumItem[] = (source.curriculum || []).map(item => {
+            const itemId = `copy-${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+            if (item.type === 'video') {
+                return {
+                    id: itemId,
+                    type: 'video',
+                    data: {
+                        id: item.id.toString(),
+                        title: item.name,
+                        url: '', // Missing in legacy data
+                        duration: item.duration,
+                        author: {
+                            name: item.author || 'Unknown',
+                            type: item.authorType || 'individual'
+                        },
+                        description: ''
+                    } as VideoLecture
+                };
+            } else {
+                // Default to scenario
+                const detail = scenarioDetails[item.id];
+                return {
+                    id: itemId,
+                    type: 'scenario',
+                    data: detail || {
+                        id: item.id,
+                        title: item.name,
+                        duration: item.duration,
+                        platform: item.platform,
+                        ContributedBy: item.author || 'Medicrew',
+                        // Add other required fields with defaults if detail is missing
+                    } as any
+                };
+            }
+        });
+        setCurriculumItems(initialItems);
+    }, [duplicateFrom, selectedProduct]);
+
+    // 위저드에서 선택한 기관 반영 (마이클래스 생성)
+    useEffect(() => {
+        if (wizardOrganizationId && isAdmin) {
+            const id = Number(wizardOrganizationId);
+            if (!Number.isNaN(id)) setOpeningOrganizationId(id);
+        }
+    }, [wizardOrganizationId, isAdmin]);
 
     const handleCountryChange = (selectedCountry: string) => {
         setCountry(selectedCountry);
@@ -502,6 +518,7 @@ export default function MyClassCreate(): React.ReactElement {
                         onItemsChange={setCurriculumItems}
                         error={errors.scenarios}
                         purchasedProducts={purchasedProducts}
+                        initialSelectedProductId={selectedProduct?.id ?? undefined}
                     />
 
                     <div className="border-t border-gray-200"></div>

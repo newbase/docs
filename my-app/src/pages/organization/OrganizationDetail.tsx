@@ -140,7 +140,8 @@ export default function OrganizationDetail(): React.ReactElement {
                 deviceCount: 0,
                 userCount: 0,
                 expiryDate: '',
-                isPartner: dto.isPartner ?? false
+                isPartner: dto.isPartner ?? false,
+                isKhaRegularMember: (dto as any).isKhaRegularMember ?? false
             } as any;
         };
 

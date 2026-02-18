@@ -84,7 +84,7 @@ export default function OpenClassEdit(): React.ReactElement {
     const [country, setCountry] = useState<string>('');
     const [currency, setCurrency] = useState<string>('원');
     const [partnerOrgId, setPartnerOrgId] = useState<string>('none');
-    const [discountType, setDiscountType] = useState<'none' | 'affiliate' | 'event'>('none');
+    const [discountType, setDiscountType] = useState<'none' | 'event'>('none');
     const [discountCondition, setDiscountCondition] = useState('');
 
     // Offline participation specific state
@@ -793,7 +793,6 @@ export default function OpenClassEdit(): React.ReactElement {
                                             wrapperClassName="w-40"
                                         >
                                             <option value="none">할인 없음</option>
-                                            <option value="affiliate">제휴 할인</option>
                                             <option value="event">이벤트 할인</option>
                                         </SimpleSelect>
                                     </div>

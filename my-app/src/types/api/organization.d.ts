@@ -6,6 +6,8 @@ export interface OrganizationInfoDto {
 	logo?: string;
 	createdAt: string;
 	organizationTypeTitle: string;
+	/** 대한병원협회 정회원 여부 */
+	isKhaRegularMember?: boolean;
 	licenseType?: 'USER' | 'DEVICE' | 'LIFETIME' | 'DEMO';
 	licenseStatus?: 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'EXPIRING_SOON';
 	deviceCount: number;
@@ -59,6 +61,10 @@ export interface GetOrganizationDetailResponseDto {
 	licenseStatus: 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'EXPIRING_SOON';
 	/** 제휴기관 여부 */
 	isPartner?: boolean;
+	/** 제휴기관 수수료율 (%) */
+	commissionRate?: number;
+	/** 대한병원협회 정회원 여부 */
+	isKhaRegularMember?: boolean;
 }
 
 export interface CreateOrganizationRequestDto {
@@ -73,6 +79,10 @@ export interface CreateOrganizationRequestDto {
 	email?: string;
 	/** 제휴기관 여부 */
 	isPartner?: boolean;
+	/** 제휴기관 수수료율 (%) */
+	commissionRate?: number;
+	/** 대한병원협회 정회원 여부 */
+	isKhaRegularMember?: boolean;
 }
 
 export interface CreateOrganizationResponseDto {
@@ -91,6 +101,10 @@ export interface UpdateOrganizationBodyDto {
 	email?: string;
 	/** 제휴기관 여부 */
 	isPartner?: boolean;
+	/** 제휴기관 수수료율 (%) */
+	commissionRate?: number;
+	/** 대한병원협회 정회원 여부 */
+	isKhaRegularMember?: boolean;
 }
 
 export interface UpdateOrganizationResponseDto {

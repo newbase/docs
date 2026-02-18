@@ -26,8 +26,9 @@ const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProp
       "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
       error && "border-red-500 focus-visible:ring-red-500/20 focus-visible:border-red-500",
       icon && "pl-10",
-      suffix && "pr-6",
-      type === 'number' && "[&::-webkit-inner-spin-button]:ml-1 [&::-webkit-outer-spin-button]:ml-1",
+      suffix && (type === 'number' ? "pr-10" : "pr-6"),
+      type === 'number' && !suffix && "[&::-webkit-inner-spin-button]:ml-1 [&::-webkit-outer-spin-button]:ml-1",
+      type === 'number' && suffix && "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0",
       className
     )
 
@@ -100,7 +101,7 @@ const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProp
           {suffix && (
             <div className={cn(
               "absolute top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none transition-all",
-              type === 'number' ? "right-3" : "right-3"
+              "right-3"
             )}>
               {suffix}
             </div>

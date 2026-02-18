@@ -607,7 +607,7 @@ export default function OpenClassDetail(): React.ReactElement {
                                         variant="ghost"
                                         size="md"
                                         className="flex-1 text-gray-600"
-                                        onClick={() => navigate(`${basePath}/class/create`, { state: { duplicateFrom: classData } })}
+                                        onClick={() => navigate(`${basePath}/open-class/create`, { state: { duplicateFrom: classData } })}
                                     >
                                         <Copy size={14} className="mr-1.5" />
                                         클래스 복제

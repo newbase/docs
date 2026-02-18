@@ -27,6 +27,8 @@ interface CurriculumSetupProps {
     purchasedProducts?: ClassItem[];
     /** true면 편집 완료/초기화 버튼 숨김, 항상 편집 UI(시나리오·동영상 추가) 표시 */
     hideEditCompleteAndReset?: boolean;
+    /** 클래스 생성 시 위저드에서 이미 프로덕트를 선택한 경우. 설정되면 프로덕트 선택 목록 대신 커리큘럼만 표시 */
+    initialSelectedProductId?: string | null;
 }
 
 export default function CurriculumSetup({
@@ -34,11 +36,12 @@ export default function CurriculumSetup({
     onItemsChange,
     error,
     purchasedProducts = [],
-    hideEditCompleteAndReset = false
+    hideEditCompleteAndReset = false,
+    initialSelectedProductId = null
 }: CurriculumSetupProps): React.ReactElement {
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     /** 프로덕트 선택 전: 프로덕트 선택 섹션만 표시. 선택 후: 커리큘럼 조회/편집 */
-    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(initialSelectedProductId ?? null);
     /** 커리큘럼 편집 모드: false = 조회(읽기 전용), true = 편집(동영상 추가, 시나리오 추가, 순서 변경). hideEditCompleteAndReset면 항상 true */
     const [isEditMode, setIsEditMode] = useState(false);
     const effectiveEditMode = hideEditCompleteAndReset || isEditMode;
@@ -47,7 +50,14 @@ export default function CurriculumSetup({
     /** 세션 클릭 시 아래줄에 시나리오 소개/동영상 설명 표시 */
     const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
 
-    const showProductSelection = purchasedProducts.length > 0 && selectedProductId === null;
+    useEffect(() => {
+        if (initialSelectedProductId != null) {
+            setSelectedProductId(initialSelectedProductId);
+        }
+    }, [initialSelectedProductId]);
+
+    /** 이미 프로덕트가 선택된 상태(위저드 등)면 프로덕트 선택 목록 숨기고 커리큘럼만 표시 */
+    const showProductSelection = purchasedProducts.length > 0 && selectedProductId === null && initialSelectedProductId == null;
 
     const itemIdsKey = useMemo(() => (items?.length ? [...items].map((i) => i.id).sort().join(',') : ''), [items]);
     useEffect(() => {
