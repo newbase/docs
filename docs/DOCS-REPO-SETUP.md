@@ -28,8 +28,8 @@ git checkout --orphan docs-publish
 # 스테이징 초기화 (아무것도 선택 안 된 상태)
 git reset
 
-# docs 폴더와 screenshots 폴더만 추가
-git add docs/ screenshots/
+# 루트 index.html(진입 리다이렉트) + docs, screenshots 추가
+git add index.html docs/ screenshots/
 
 # 커밋
 git commit -m "docs: 백엔드 워크플로우 문서 및 스크린샷"
@@ -83,9 +83,10 @@ git checkout ux-design
 
 ---
 
-## 7. "There isn't a GitHub Pages site here" 가 나올 때
+## 7. "File not found" / "There isn't a GitHub Pages site here" 가 나올 때
 
-이 메시지는 **저장소에 내용이 없거나**, **Pages가 아직 설정/배포되지 않았을 때** 나옵니다.
+- **File not found** (root 접속 시): GitHub Pages는 루트 URL(`/`)에 **index.html**이 있어야 합니다. `docs-publish` 푸시 시 **index.html**을 포함했는지 확인하고, 없으면 위 2단계처럼 `git add index.html docs/ screenshots/` 후 다시 푸시하세요.
+- **There isn't a GitHub Pages site here**: **저장소에 내용이 없거나**, **Pages가 아직 설정/배포되지 않았을 때** 나옵니다.
 
 ### 7-1. 내용이 newbase/docs에 올라갔는지 확인
 
@@ -133,8 +134,8 @@ git checkout docs-publish
 
 # main(또는 ux-design)에서 최신 docs, screenshots 가져오기 (선택)
 # git checkout main -- docs/ screenshots/
-# 또는 수정한 파일만 추가
-git add docs/ screenshots/
+# 또는 수정한 파일만 추가 (루트 index.html 있으면 함께 추가)
+git add index.html docs/ screenshots/
 git commit -m "docs: 내용 업데이트"
 git push docs-repo docs-publish:main
 
@@ -149,6 +150,6 @@ git checkout ux-design
 | 단계 | 명령어 |
 |------|--------|
 | 원격 추가 | `git remote add docs-repo https://github.com/newbase/docs.git` |
-| 전용 브랜치 생성 | `git checkout --orphan docs-publish` → `git reset` → `git add docs/ screenshots/` → `git commit` |
+| 전용 브랜치 생성 | `git checkout --orphan docs-publish` → `git reset` → `git add index.html docs/ screenshots/` → `git commit` |
 | 푸시 | `git push docs-repo docs-publish:main` |
 | Pages | Settings → Pages → Branch: main, Folder: / (root) |
