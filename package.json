@@ -1,5 +1,5 @@
 {
-  "name": "medicrew-landing",
+  "name": "medicrew-doc",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -8,5 +8,5 @@
     "test": "cd my-app && npm test",
     "install-deps": "cd my-app && npm install"
   },
-  "description": "Medicrew Landing Page - React Application"
+  "description": "Medicrew Doc"
 }
