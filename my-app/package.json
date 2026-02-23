@@ -40,7 +40,8 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "screenshot:student": "node scripts/screenshot-student-pages.mjs"
+    "screenshot:student": "node scripts/screenshot-student-pages.mjs",
+    "screenshot:admin": "node scripts/screenshot-admin-pages.mjs"
   },
   "eslintConfig": {
     "extends": [
